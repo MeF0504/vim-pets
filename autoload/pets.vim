@@ -54,8 +54,8 @@ function! s:set_pet_col() abort
 endfunction
 
 function! s:bg_setting() abort
-    if exists(printf('*pets#%s#setting', s:pets_status.world))
-        execute printf('call pets#%s#setting()', s:pets_status.world)
+    if exists(printf('*pets#%s#bg_setting', s:pets_status.world))
+        execute printf('call pets#%s#bg_setting()', s:pets_status.world)
     endif
 endfunction
 

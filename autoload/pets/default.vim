@@ -32,7 +32,7 @@ function! pets#default#get_bg() abort
     return bg
 endfunction
 
-function! pets#default#setting() abort
+function! pets#default#bg_setting() abort
     highlight PetsGardenBG1 ctermfg=10 ctermbg=None guifg=Lime guibg=NONE
     highlight PetsGardenBG2 ctermfg=2 ctermbg=None guifg=Green guibg=NONE
     for l in range(1, line('$'))
