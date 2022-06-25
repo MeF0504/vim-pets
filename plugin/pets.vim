@@ -20,11 +20,11 @@ set cpo&vim
 
 function! s:pets_get_names(arglead, cmdline, cursorpos) abort
     let arglead = tolower(a:arglead)
-    let names = pets#ascii#get_pets_names()
+    let names = pets#get_pet_names()
     return filter(names, '!stridx(tolower(v:val), arglead)')
 endfunction
 
-command -nargs=? -complete=customlist,s:pets_get_names Pets call pets#pets(<f-args>)
+command! -nargs=? -complete=customlist,s:pets_get_names Pets call pets#pets(<f-args>)
 
 let &cpo = s:save_cpo
 unlet s:save_cpo

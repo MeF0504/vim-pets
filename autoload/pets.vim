@@ -2,6 +2,8 @@
 let s:pets_status = {}
 let s:max_pets = 5
 let s:idx = 0
+let g:pets_worlds = get(g:, 'pets_worlds', [])
+call add(g:pets_worlds, 'default')
 
 function! s:echo_err(str) abort
     echohl ErrorMsg
@@ -10,6 +12,13 @@ function! s:echo_err(str) abort
 endfunction
 
 function! pets#status() abort
+    if has_key(s:pets_status, 'world')
+        echohl Special
+        echo 'world: '
+        echohl Title
+        echon s:pets_status.world
+        echohl None
+    endif
     if has_key(s:pets_status, 'garden')
         echohl Special
         echo 'garden;'
@@ -37,22 +46,17 @@ function! pets#status() abort
         endfor
         echohl None
     endif
+    echohl None
 endfunction
 
 function! s:set_pet_col() abort
     highlight PetsBG ctermbg=0 ctermfg=fg guibg=Black guifg=fg
 endfunction
 
-function! s:set_garden_col() abort
-    highlight PetsGardenBG1 ctermfg=10 ctermbg=None guifg=Lime guibg=NONE
-    highlight PetsGardenBG2 ctermfg=2 ctermbg=None guifg=Green guibg=NONE
-    for l in range(1, line('$'))
-        if l%2
-            call matchaddpos('PetsGardenBG1', [l])
-        else
-            call matchaddpos('PetsGardenBG2', [l])
-        endif
-    endfor
+function! s:bg_setting() abort
+    if exists(printf('*pets#%s#setting', s:pets_status.world))
+        execute printf('call pets#%s#setting()', s:pets_status.world)
+    endif
 endfunction
 
 function! s:float_open(
@@ -131,13 +135,52 @@ function! s:float_open(
     return [bid, pid]
 endfunction
 
+function! pets#get_pet_names() abort
+    let res = []
+    for wld in g:pets_worlds
+        try
+            let res = eval(printf('res+pets#%s#get_pet_names()', wld))
+        endtry
+    endfor
+    return res
+endfunction
+
+function! s:get_bg(height, width) abort
+    let world = s:pets_status.world
+    let bg = eval(printf('pets#%s#get_bg()', world))
+    let bgh = len(bg)
+    let bgw = len(bg[0])
+    let res = []
+    for i in range(a:height)
+        call add(res, '')
+    endfor
+    for i in range(a:width/bgw)
+        for j in range(a:height)
+            let res[j] .= bg[j%bgh]
+        endfor
+    endfor
+
+    for i in range(a:width%bgw)
+        for j in range(a:height)
+            let res[j] .= bg[j%bgh][i]
+        endfor
+    endfor
+    return res
+endfunction
+
 function! pets#pets(...) abort
-    let type = get(g:, 'pets_garden', 'forest')
     if !empty(a:000)
         let name = a:1
     else
-        let name = get(g:, 'pets_pet', 'dog')
+        let name = get(g:, 'pets_defaqult_pet', 'dog')
     endif
+    for wld in g:pets_worlds
+        let pet_names = eval(printf('pets#%s#get_pet_names()', wld))
+        if match(pet_names, name) != -1
+            let s:pets_status.world = wld
+            break
+        endif
+    endfor
     let res = pets#create_garden()
     if res
         call pets#put_pet(name)
@@ -154,7 +197,7 @@ function! pets#create_garden() abort
     let width = get(g:, 'pets_garden_width', &columns/2)
     let height = get(g:, 'pets_garden_height', &lines/3)
     let pos = get(g:, 'pets_garden_pos', [&lines-&cmdheight-1, &columns-1, 'botright'])
-    let bg = pets#ascii#get_bg(height, width)
+    let bg = s:get_bg(height, width)
 
     if pos[2][:2] == 'bot'
         let cur_h = pos[0]
@@ -171,7 +214,7 @@ function! pets#create_garden() abort
 
      let [bid, pid] = s:float_open(bg, pos[0], pos[1], 'Normal', 98,
                 \ pos[2], width, height, 1)
-     call win_execute(pid, printf('call %sset_garden_col()', expand('<SID>')))
+     call win_execute(pid, printf('call %sbg_setting()', expand('<SID>')))
 
     let s:pets_status.garden = {
                 \ 'buffer': bid,
@@ -197,7 +240,7 @@ function! pets#put_pet(name) abort
         let s:pets_status.pets = {}
     endif
 
-    let img = pets#ascii#get_pet(a:name)
+    let img = eval(printf('pets#%s#get_pet("%s")', s:pets_status.world, a:name))
     if empty(img)
         return
     endif
@@ -345,7 +388,7 @@ endfunction
 
 function! s:pets_get_names(arglead, cmdline, cursorpos) abort
     let arglead = tolower(a:arglead)
-    let names = pets#ascii#get_pets_names()
+    let names = eval(printf('pets#%s#get_pet_names()', s:pets_status.world))
     return filter(names, '!stridx(tolower(v:val), arglead)')
 endfunction
 function! s:pets_select_leave_pets(arglead, cmdline, cursorpos) abort
@@ -357,9 +400,9 @@ function! s:pets_select_leave_pets(arglead, cmdline, cursorpos) abort
     endfor
     return filter(res, '!stridx(tolower(v:val), arglead)')
 endfunction
-command -nargs=1 -complete=customlist,s:pets_get_names PetsAdd call pets#put_pet(<f-args>)
-command -nargs=? -complete=customlist,s:pets_select_leave_pets PetsLeave call pets#leave_pet(<f-args>)
-command PetsClose call pets#close()
+command! -nargs=1 -complete=customlist,s:pets_get_names PetsAdd call pets#put_pet(<f-args>)
+command! -nargs=? -complete=customlist,s:pets_select_leave_pets PetsLeave call pets#leave_pet(<f-args>)
+command! PetsClose call pets#close()
 
 call s:set_pet_col()
 augroup Pets
