@@ -172,7 +172,7 @@ function! pets#pets(...) abort
     if !empty(a:000)
         let name = a:1
     else
-        let name = get(g:, 'pets_defaqult_pet', 'dog')
+        let name = get(g:, 'pets_default_pet', 'dog')
     endif
     for wld in g:pets_worlds
         let pet_names = eval(printf('pets#%s#get_pet_names()', wld))
@@ -400,7 +400,7 @@ function! s:pets_select_leave_pets(arglead, cmdline, cursorpos) abort
     endfor
     return filter(res, '!stridx(tolower(v:val), arglead)')
 endfunction
-command! -nargs=1 -complete=customlist,s:pets_get_names PetsAdd call pets#put_pet(<f-args>)
+command! -nargs=1 -complete=customlist,s:pets_get_names PetsJoin call pets#put_pet(<f-args>)
 command! -nargs=? -complete=customlist,s:pets_select_leave_pets PetsLeave call pets#leave_pet(<f-args>)
 command! PetsClose call pets#close()
 
