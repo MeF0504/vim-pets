@@ -387,18 +387,16 @@ function! pets#close()
 endfunction
 
 function! s:pets_get_names(arglead, cmdline, cursorpos) abort
-    let arglead = tolower(a:arglead)
     let names = eval(printf('pets#%s#get_pet_names()', s:pets_status.world))
-    return filter(names, '!stridx(tolower(v:val), arglead)')
+    return filter(names, '!stridx(v:val, a:arglead)')
 endfunction
 function! s:pets_select_leave_pets(arglead, cmdline, cursorpos) abort
-    let arglead = tolower(a:arglead)
     let res = []
     for idx in keys(s:pets_status.pets)
         let opt = s:pets_status.pets[idx]
         call add(res, printf('%s(%d)', opt.name, idx))
     endfor
-    return filter(res, '!stridx(tolower(v:val), arglead)')
+    return filter(res, '!stridx(v:val, a:arglead)')
 endfunction
 command! -nargs=1 -complete=customlist,s:pets_get_names PetsJoin call pets#put_pet(<f-args>)
 command! -nargs=? -complete=customlist,s:pets_select_leave_pets PetsLeave call pets#leave_pet(<f-args>)
