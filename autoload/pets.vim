@@ -337,8 +337,11 @@ function! <SID>pets_cb(index, timer_id) abort
     elseif hrange[1] <= line
         let hnext = line-1
     else
-        if rand()%100 > 50
+        let rand = rand()%100
+        if rand >= 60
             let hnext = line+1
+        elseif rand >= 40
+            let hnext = line
         else
             let hnext = line-1
         endif
@@ -350,8 +353,11 @@ function! <SID>pets_cb(index, timer_id) abort
     elseif wrange[1] <= col
         let wnext = col-1
     else
-        if rand()%100 > 50
+        let rand = rand()%100
+        if rand >= 60
             let wnext = col+1
+        elseif rand >= 40
+            let wnext = col
         else
             let wnext = col-1
         endif
