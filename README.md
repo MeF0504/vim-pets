@@ -4,6 +4,8 @@ Put small animals in your text editor.
 (As you know, this plugin is strongly inspired by [vscode-pets](https://marketplace.visualstudio.com/items?itemName=tonybaloney.vscode-pets))
 <img src=images/vi-pets.gif width="70%">
 
+extension pack sample -> [vim-pets-ocean](https://github.com/MeF0504/vim-pets-ocean)
+
 ## Usage
 
 Create garden with pets.
