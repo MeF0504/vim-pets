@@ -50,7 +50,7 @@ function! pets#status() abort
 endfunction
 
 function! s:set_pet_col() abort
-    highlight PetsBG ctermbg=0 ctermfg=fg guibg=Black guifg=fg
+    " highlight PetsBG ctermbg=0 ctermfg=fg guibg=Black guifg=fg
 endfunction
 
 function! s:bg_setting() abort
@@ -181,6 +181,10 @@ function! pets#pets(...) abort
             break
         endif
     endfor
+    if !has_key(s:pets_status, 'world')
+        call s:echo_err("incorrect pets's name.")
+        return
+    endif
     let res = pets#create_garden()
     if res
         call pets#put_pet(name)
@@ -376,18 +380,22 @@ function! pets#close()
         for idx in keys(s:pets_status.pets)
             call pets#leave_pet(idx)
         endfor
+        call remove(s:pets_status, 'pets')
     endif
-    call remove(s:pets_status, 'pets')
 
-    let pid = s:pets_status.garden.winID
     if has_key(s:pets_status, 'garden')
+        let pid = s:pets_status.garden.winID
         if has('popupwin')
             call popup_close(pid)
         elseif has('nvim')
             call nvim_win_close(pid, v:false)
         endif
+        call remove(s:pets_status, 'garden')
     endif
-    call remove(s:pets_status, 'garden')
+
+    if has_key(s:pets_status, 'world')
+        call remove(s:pets_status, 'world')
+    endif
 
     let s:idx = 0
 endfunction
