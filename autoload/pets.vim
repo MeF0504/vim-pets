@@ -220,12 +220,38 @@ function! pets#create_garden() abort
                 \ pos[2], width, height, 1)
      call win_execute(pid, printf('call %sbg_setting()', expand('<SID>')))
 
+    if pos[2][-4:] == 'left'
+        let l = pos[1]
+        let r = l+width
+    elseif pos[2][-5:] == 'right'
+        let r = pos[1]
+        let l = r-width
+    else
+        call s:echo_err(printf('incorrect pos setting: %s.', pos[2]))
+        return
+    endif
+    let wran = [l+1, r-1]
+
+    if pos[2][:2] == 'top'
+        let t = pos[0]
+        let b = t+height
+    elseif pos[2][:2] == 'bot'
+        let b = pos[0]
+        let t = b-height
+    else
+        call s:echo_err(printf('incorrect pos setting: %s.', pos[2]))
+        return
+    endif
+    let hran = [t+1, b-1]
+
     let s:pets_status.garden = {
                 \ 'buffer': bid,
                 \ 'winID': pid,
                 \ 'width': width,
                 \ 'height': height,
                 \ 'pos': pos,
+                \ 'wrange': wran,
+                \ 'hrange': hran,
                 \ 'tab': tabpagenr(),
                 \ }
     return v:true
@@ -249,32 +275,10 @@ function! pets#put_pet(name) abort
         return
     endif
 
-    if s:pets_status.garden.pos[2][-4:] == 'left'
-        let l = s:pets_status.garden.pos[1]
-        let r = l+s:pets_status.garden.width
-    elseif s:pets_status.garden.pos[2][-5:] == 'right'
-        let r = s:pets_status.garden.pos[1]
-        let l = r-s:pets_status.garden.width
-    else
-        call s:echo_err(printf('incorrect pos setting: %s.', pos[2]))
-        return
-    endif
-    let wran = [l+1, r-1]
+    let wran = s:pets_status.garden.wrange
     let w = wran[0]+rand()%(wran[1]-wran[0])
-
-    if s:pets_status.garden.pos[2][:2] == 'top'
-        let t = s:pets_status.garden.pos[0]
-        let b = t+s:pets_status.garden.height
-    elseif s:pets_status.garden.pos[2][:2] == 'bot'
-        let b = s:pets_status.garden.pos[0]
-        let t = b-s:pets_status.garden.height
-    else
-        call s:echo_err(printf('incorrect pos setting: %s.', s:pets_status.garden.pos[2]))
-        return
-    endif
-    let hran = [t+1, b-1]
+    let hran = s:pets_status.garden.hrange
     let h = hran[0]+rand()%(hran[1]-hran[0])
-
     let [bid, pid] = s:float_open(img, h, w, 'Normal', 99, 'botright', 2, 1, 0)
     let idx = s:idx
     let s:idx += 1
@@ -288,8 +292,6 @@ function! pets#put_pet(name) abort
                 \ 'timerID': tid,
                 \ 'name': a:name,
                 \ 'image': img,
-                \ 'wrange': wran,
-                \ 'hrange': hran,
                 \ 'pos': [h, w],
                 \ }
     let s:pets_status.pets[idx] = pet_dict
@@ -333,8 +335,9 @@ function! <SID>pets_cb(index, timer_id) abort
     let pid = opt['winID']
     let line = opt['pos'][0]
     let col = opt['pos'][1]
-    let wrange = opt['wrange']
-    let hrange = opt['hrange']
+    let garden = s:pets_status.garden
+    let wrange = garden['wrange']
+    let hrange = garden['hrange']
 
     if hrange[0] >= line
         let hnext = line+1
