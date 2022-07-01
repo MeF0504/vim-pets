@@ -187,7 +187,12 @@ function! pets#pets(...) abort
     endif
     let res = pets#create_garden()
     if res
-        call pets#put_pet(name)
+        if a:0 >= 2
+            let nick = a:2
+        else
+            let nick = s:idx
+        endif
+        call pets#put_pet(name, nick)
     endif
 endfunction
 
@@ -257,7 +262,7 @@ function! pets#create_garden() abort
     return v:true
 endfunction
 
-function! pets#put_pet(name) abort
+function! pets#put_pet(name, ...) abort
     if !has_key(s:pets_status, 'garden')
         call s:echo_err('Please create garden before.')
         return
@@ -266,6 +271,12 @@ function! pets#put_pet(name) abort
         call s:echo_err('garden is not here.')
         return
     endif
+    if empty(a:000)
+        let nick = s:idx
+    else
+        let nick = a:1
+    endif
+
     if !has_key(s:pets_status, 'pets')
         let s:pets_status.pets = {}
     endif
@@ -283,7 +294,7 @@ function! pets#put_pet(name) abort
     let idx = s:idx
     let s:idx += 1
 
-    echomsg printf('[%s]: "Hey!"', a:name)
+    echo printf('%s (%s): "Hey!"', a:name, nick)
     let tid = timer_start(1000, function(expand('<SID>').'pets_cb', [idx]), {'repeat':-1})
 
     let pet_dict = {
@@ -291,6 +302,7 @@ function! pets#put_pet(name) abort
                 \ 'winID': pid,
                 \ 'timerID': tid,
                 \ 'name': a:name,
+                \ 'nickname': nick,
                 \ 'image': img,
                 \ 'pos': [h, w],
                 \ }
@@ -314,12 +326,26 @@ function! pets#leave_pet(...) abort
     else
         let l = strridx(a:1, '(')
         let r = strridx(a:1, ')')
-        let index = str2nr(a:1[l+1:r-1])
+        let nick = a:1[l+1:r-1]
+        let name = a:1[:l-1]
+        let index = -1
+        for idx in keys(s:pets_status.pets)
+            let opt = s:pets_status.pets[idx]
+            if opt.name == name && opt.nickname == nick
+                let index = idx
+                break
+            endif
+        endfor
+    endif
+    if !has_key(s:pets_status.pets, index)
+        call echo_err('incorrect pet name or something.')
+        return
     endif
 
     let opt = s:pets_status.pets[index]
     let name = opt['name']
     let pid = opt['winID']
+    let nick = opt['nickname']
     call timer_stop(s:pets_status.pets[index]['timerID'])
     if has('popupwin')
         call popup_close(pid)
@@ -327,7 +353,7 @@ function! pets#leave_pet(...) abort
         call nvim_win_close(pid, v:false)
     endif
     call remove(s:pets_status.pets, index)
-    echomsg printf('[%s]: "Bye!"', name)
+    echo printf('%s (%s): "Bye!"', name, nick)
 endfunction
 
 function! <SID>pets_cb(index, timer_id) abort
@@ -411,11 +437,11 @@ function! s:pets_select_leave_pets(arglead, cmdline, cursorpos) abort
     let res = []
     for idx in keys(s:pets_status.pets)
         let opt = s:pets_status.pets[idx]
-        call add(res, printf('%s(%d)', opt.name, idx))
+        call add(res, printf('%s(%s)', opt.name, opt.nickname))
     endfor
     return filter(res, '!stridx(v:val, a:arglead)')
 endfunction
-command! -nargs=1 -complete=customlist,s:pets_get_names PetsJoin call pets#put_pet(<f-args>)
+command! -nargs=+ -complete=customlist,s:pets_get_names PetsJoin call pets#put_pet(<f-args>)
 command! -nargs=? -complete=customlist,s:pets_select_leave_pets PetsLeave call pets#leave_pet(<f-args>)
 command! PetsClose call pets#close()
 

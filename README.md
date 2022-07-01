@@ -10,12 +10,12 @@ extension pack sample -> [vim-pets-ocean](https://github.com/MeF0504/vim-pets-oc
 
 Create garden with pets.
 ```
-Pets [animal name]
+Pets [animal_name [nickname]]
 ```
 After you create a garden of pets, you can add and remove pet as following.
 ```
-PetsJoin (animal name)
-PetsLeave [animal name]
+PetsJoin animal_name [nickname]
+PetsLeave [animal_name(nickname)]
 ```
 To Close the garden, please do
 ```
@@ -53,6 +53,7 @@ Plug 'MeF0504/vim-pets'
     - In Vim, these values are assigned to the `line`, `col`, and `pos` parameters of popup_create-arguments.
     - In Neovim, these values are assigned to the `row`, `col`, and `anchor` parameters of nvim_open_win-config.
     The position argument is converted to fit the `nvim_open_win` function.
+    - default: [&lines-&cmdheight-1, &columns-1, 'botright']
 
 ## License
 [MIT](https://github.com/MeF0504/vim-pets/blob/main/LICENSE)

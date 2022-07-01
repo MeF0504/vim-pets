@@ -23,7 +23,7 @@ function! s:pets_get_names(arglead, cmdline, cursorpos) abort
     return filter(names, '!stridx(v:val, a:arglead)')
 endfunction
 
-command! -nargs=? -complete=customlist,s:pets_get_names Pets call pets#pets(<f-args>)
+command! -nargs=* -complete=customlist,s:pets_get_names Pets call pets#pets(<f-args>)
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
