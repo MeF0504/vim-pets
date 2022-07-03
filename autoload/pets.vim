@@ -2,6 +2,8 @@
 let s:pets_status = {}
 let s:max_pets = 5
 let s:idx = 0
+let s:friend_time = 5 " sec
+let s:friend_sep = 3
 let g:pets_worlds = get(g:, 'pets_worlds', [])
 call add(g:pets_worlds, 'default')
 
@@ -294,7 +296,7 @@ function! pets#put_pet(name, ...) abort
     let idx = s:idx
     let s:idx += 1
 
-    echo printf('%s (%s): "Hey!"', a:name, nick)
+    echo printf('%s(%s): "Hey!"', a:name, nick)
     let tid = timer_start(1000, function(expand('<SID>').'pets_cb', [idx]), {'repeat':-1})
 
     let pet_dict = {
@@ -305,6 +307,8 @@ function! pets#put_pet(name, ...) abort
                 \ 'nickname': nick,
                 \ 'image': img,
                 \ 'pos': [h, w],
+                \ 'join_time': localtime(),
+                \ 'friends': [],
                 \ }
     let s:pets_status.pets[idx] = pet_dict
     if len(s:pets_status.pets) > s:max_pets
@@ -313,7 +317,7 @@ function! pets#put_pet(name, ...) abort
     endif
 endfunction
 
-function! pets#leave_pet(...) abort
+function! pets#leave_pet(all_close, ...) abort
     if !has_key(s:pets_status, 'pets') || empty(s:pets_status.pets)
         call s:echo_err('there is no pets in garden.')
         return
@@ -346,18 +350,30 @@ function! pets#leave_pet(...) abort
     let name = opt['name']
     let pid = opt['winID']
     let nick = opt['nickname']
+    " stop timer function.
     call timer_stop(s:pets_status.pets[index]['timerID'])
+    " close floating/popup window.
     if has('popupwin')
         call popup_close(pid)
     elseif has('nvim')
         call nvim_win_close(pid, v:false)
     endif
+    echo printf('%s(%s): "Bye!"', name, nick)
+    " friends say bye.
+    if !a:all_close
+        for fid in opt.friends
+            let friend = s:pets_status.pets[fid]
+            echo printf("%s(%s): Bye, %s(%s)!", friend.name, friend.nickname, name, nick)
+            call remove(friend.friends, match(friend.friends, index))
+        endfor
+    endif
+    " remove status.
     call remove(s:pets_status.pets, index)
-    echo printf('%s (%s): "Bye!"', name, nick)
 endfunction
 
 function! <SID>pets_cb(index, timer_id) abort
-    let opt = s:pets_status.pets[a:index]
+    let pets = s:pets_status.pets
+    let opt = pets[a:index]
     let pid = opt['winID']
     let line = opt['pos'][0]
     let col = opt['pos'][1]
@@ -402,6 +418,26 @@ function! <SID>pets_cb(index, timer_id) abort
     elseif has('nvim')
         call nvim_win_set_config(pid, {'relative': 'editor', 'col': wnext, 'row': hnext})
     endif
+
+    for idx in keys(pets)
+        if idx == a:index
+            continue
+        endif
+        if match(opt.friends, idx) != -1
+            " already friend
+            continue
+        endif
+        let join_time = max([pets[idx].join_time, opt.join_time])
+        let is_time = localtime()-join_time >= s:friend_time
+        let is_sep = abs(opt.pos[0]-pets[idx].pos[0]) <= s:friend_sep
+                    \ && abs(opt.pos[1]-pets[idx].pos[1]) <= s:friend_sep
+        if is_time && is_sep
+            echo printf('%s(%s) and %s(%s): "We are friends!"',
+                        \ opt.name, opt.nickname, pets[idx].name, pets[idx].nickname)
+            call add(opt.friends, idx)
+            call add(pets[idx].friends, a:index)
+        endif
+    endfor
 endfunction
 
 function! pets#close()
