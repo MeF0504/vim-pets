@@ -2,7 +2,7 @@
 let s:pets_status = {}
 let s:max_pets = 5
 let s:idx = 0
-let s:friend_time = 5 " sec
+let s:friend_time = 60 " sec
 let s:friend_sep = 3
 let g:pets_worlds = get(g:, 'pets_worlds', [])
 call add(g:pets_worlds, 'default')
