@@ -2,7 +2,7 @@
 let s:pets_status = {}
 let s:max_pets = 5
 let s:idx = 0
-let s:friend_time = 60 " sec
+let s:friend_time = 30 " sec
 let s:friend_sep = 3
 let g:pets_worlds = get(g:, 'pets_worlds', [])
 call add(g:pets_worlds, 'default')
@@ -313,7 +313,7 @@ function! pets#put_pet(name, ...) abort
     let s:pets_status.pets[idx] = pet_dict
     if len(s:pets_status.pets) > s:max_pets
         let idx = min(keys(s:pets_status.pets))
-        call pets#leave_pet(idx)
+        call pets#leave_pet(0, idx)
     endif
 endfunction
 
@@ -443,7 +443,7 @@ endfunction
 function! pets#close()
     if has_key(s:pets_status, 'pets')
         for idx in keys(s:pets_status.pets)
-            call pets#leave_pet(idx)
+            call pets#leave_pet(1, idx)
         endfor
         call remove(s:pets_status, 'pets')
     endif
@@ -478,7 +478,7 @@ function! s:pets_select_leave_pets(arglead, cmdline, cursorpos) abort
     return filter(res, '!stridx(v:val, a:arglead)')
 endfunction
 command! -nargs=+ -complete=customlist,s:pets_get_names PetsJoin call pets#put_pet(<f-args>)
-command! -nargs=? -complete=customlist,s:pets_select_leave_pets PetsLeave call pets#leave_pet(<f-args>)
+command! -nargs=? -complete=customlist,s:pets_select_leave_pets PetsLeave call pets#leave_pet(0, <f-args>)
 command! PetsClose call pets#close()
 
 call s:set_pet_col()
