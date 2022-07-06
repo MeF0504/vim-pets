@@ -363,7 +363,7 @@ function! pets#leave_pet(all_close, ...) abort
     if !a:all_close
         for fid in opt.friends
             let friend = s:pets_status.pets[fid]
-            echo printf("%s(%s): Bye, %s(%s)!", friend.name, friend.nickname, name, nick)
+            echo printf('%s(%s): "Bye, %s(%s)!"', friend.name, friend.nickname, name, nick)
             call remove(friend.friends, match(friend.friends, index))
         endfor
     endif
