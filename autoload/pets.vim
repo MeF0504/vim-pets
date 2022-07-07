@@ -51,9 +51,9 @@ function! pets#status() abort
     echohl None
 endfunction
 
-function! s:set_pet_col() abort
-    " highlight PetsBG ctermbg=0 ctermfg=fg guibg=Black guifg=fg
-endfunction
+" function! s:set_pet_col() abort
+"     " highlight PetsBG ctermbg=0 ctermfg=fg guibg=Black guifg=fg
+" endfunction
 
 function! s:bg_setting() abort
     if exists(printf('*pets#%s#bg_setting', s:pets_status.world))
@@ -481,8 +481,8 @@ command! -nargs=+ -complete=customlist,s:pets_get_names PetsJoin call pets#put_p
 command! -nargs=? -complete=customlist,s:pets_select_leave_pets PetsLeave call pets#leave_pet(0, <f-args>)
 command! PetsClose call pets#close()
 
-call s:set_pet_col()
-augroup Pets
-    autocmd!
-    autocmd ColorScheme * call s:set_pet_col()
-augroup END
+" call s:set_pet_col()
+" augroup Pets
+"     autocmd!
+"     autocmd ColorScheme * call s:set_pet_col()
+" augroup END
