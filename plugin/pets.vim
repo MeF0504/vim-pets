@@ -19,7 +19,7 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 function! s:pets_get_names(arglead, cmdline, cursorpos) abort
-    let names = pets#get_pet_names()
+    let names = pets#get_all_pet_names()
     return filter(names, '!stridx(v:val, a:arglead)')
 endfunction
 

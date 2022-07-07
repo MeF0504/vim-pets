@@ -13,6 +13,7 @@ function! s:echo_err(str) abort
     echohl None
 endfunction
 
+" check status {{{
 function! pets#status() abort
     if has_key(s:pets_status, 'world')
         echohl Special
@@ -50,7 +51,9 @@ function! pets#status() abort
     endif
     echohl None
 endfunction
+" }}}
 
+" setting functions {{{
 " function! s:set_pet_col() abort
 "     " highlight PetsBG ctermbg=0 ctermfg=fg guibg=Black guifg=fg
 " endfunction
@@ -60,7 +63,9 @@ function! s:bg_setting() abort
         execute printf('call pets#%s#bg_setting()', s:pets_status.world)
     endif
 endfunction
+" }}}
 
+" background functions {{{
 function! s:float_open(
             \ text,
             \ line, col,
@@ -137,7 +142,7 @@ function! s:float_open(
     return [bid, pid]
 endfunction
 
-function! pets#get_pet_names() abort
+function! pets#get_all_pet_names() abort
     let res = []
     for wld in g:pets_worlds
         try
@@ -170,6 +175,7 @@ function! s:get_bg(height, width) abort
     return res
 endfunction
 
+" main functions
 function! pets#pets(...) abort
     if !empty(a:000)
         let name = a:1
@@ -441,6 +447,7 @@ function! <SID>pets_cb(index, timer_id) abort
 endfunction
 
 function! pets#close()
+    " clear pets
     if has_key(s:pets_status, 'pets')
         for idx in keys(s:pets_status.pets)
             call pets#leave_pet(1, idx)
@@ -448,6 +455,7 @@ function! pets#close()
         call remove(s:pets_status, 'pets')
     endif
 
+    " clear garden
     if has_key(s:pets_status, 'garden')
         let pid = s:pets_status.garden.winID
         if has('popupwin')
@@ -458,6 +466,7 @@ function! pets#close()
         call remove(s:pets_status, 'garden')
     endif
 
+    " clear world's name
     if has_key(s:pets_status, 'world')
         call remove(s:pets_status, 'world')
     endif
@@ -465,6 +474,7 @@ function! pets#close()
     let s:idx = 0
 endfunction
 
+" commands
 function! s:pets_get_names(arglead, cmdline, cursorpos) abort
     let names = eval(printf('pets#%s#get_pet_names()', s:pets_status.world))
     return filter(names, '!stridx(v:val, a:arglead)')
