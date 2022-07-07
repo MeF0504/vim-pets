@@ -49,6 +49,14 @@ function! pets#status() abort
         endfor
         echohl None
     endif
+    if has_key(s:pets_status, 'messages')
+        echohl Special
+        echo 'messages;'
+        echohl None
+        for msg in s:pets_status.messages
+            echo msg
+        endfor
+    endif
     echohl None
 endfunction
 " }}}
@@ -174,6 +182,16 @@ function! s:get_bg(height, width) abort
     endfor
     return res
 endfunction
+
+function! s:echo_msg(msg) abort
+    if !has_key(s:pets_status, 'messages')
+        let s:pets_status.messages = []
+    endif
+    let time = strftime('[%b-%d %H:%M:%S]  ')
+    call add(s:pets_status.messages, time..a:msg)
+    echo a:msg
+endfunction
+" }}}
 
 " main functions
 function! pets#pets(...) abort
@@ -302,7 +320,7 @@ function! pets#put_pet(name, ...) abort
     let idx = s:idx
     let s:idx += 1
 
-    echo printf('%s(%s): "Hey!"', a:name, nick)
+    call s:echo_msg(printf('%s(%s): "Hey!"', a:name, nick))
     let tid = timer_start(1000, function(expand('<SID>').'pets_cb', [idx]), {'repeat':-1})
 
     let pet_dict = {
@@ -364,12 +382,12 @@ function! pets#leave_pet(all_close, ...) abort
     elseif has('nvim')
         call nvim_win_close(pid, v:false)
     endif
-    echo printf('%s(%s): "Bye!"', name, nick)
+    call s:echo_msg(printf('%s(%s): "Bye!"', name, nick))
     " friends say bye.
     if !a:all_close
         for fid in opt.friends
             let friend = s:pets_status.pets[fid]
-            echo printf('%s(%s): "Bye, %s(%s)!"', friend.name, friend.nickname, name, nick)
+            call s:echo_msg(printf('%s(%s): "Bye, %s(%s)!"', friend.name, friend.nickname, name, nick))
             call remove(friend.friends, match(friend.friends, index))
         endfor
     endif
@@ -438,8 +456,8 @@ function! <SID>pets_cb(index, timer_id) abort
         let is_sep = abs(opt.pos[0]-pets[idx].pos[0]) <= s:friend_sep
                     \ && abs(opt.pos[1]-pets[idx].pos[1]) <= s:friend_sep
         if is_time && is_sep
-            echo printf('%s(%s) and %s(%s): "We are friends!"',
-                        \ opt.name, opt.nickname, pets[idx].name, pets[idx].nickname)
+            call s:echo_msg(printf('%s(%s) and %s(%s): "We are friends!"',
+                        \ opt.name, opt.nickname, pets[idx].name, pets[idx].nickname))
             call add(opt.friends, idx)
             call add(pets[idx].friends, a:index)
         endif
@@ -466,12 +484,25 @@ function! pets#close()
         call remove(s:pets_status, 'garden')
     endif
 
+    " clear messages
+    if has_key(s:pets_status, 'messages')
+        call remove(s:pets_status, 'messages')
+    endif
+
     " clear world's name
     if has_key(s:pets_status, 'world')
         call remove(s:pets_status, 'world')
     endif
 
     let s:idx = 0
+endfunction
+
+function! pets#message_log() abort
+    if has_key(s:pets_status, 'messages')
+        for msg in s:pets_status.messages
+            echo msg
+        endfor
+    endif
 endfunction
 
 " commands
@@ -490,6 +521,7 @@ endfunction
 command! -nargs=+ -complete=customlist,s:pets_get_names PetsJoin call pets#put_pet(<f-args>)
 command! -nargs=? -complete=customlist,s:pets_select_leave_pets PetsLeave call pets#leave_pet(0, <f-args>)
 command! PetsClose call pets#close()
+command! PetsMessages call pets#message_log()
 
 " call s:set_pet_col()
 " augroup Pets
