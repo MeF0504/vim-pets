@@ -4,14 +4,9 @@ let s:max_pets = 5
 let s:idx = 0
 let s:friend_time = 30 " sec
 let s:friend_sep = 3
+let s:lifetime = 10*60 " sec
 let g:pets_worlds = get(g:, 'pets_worlds', [])
 call add(g:pets_worlds, 'default')
-
-function! s:echo_err(str) abort
-    echohl ErrorMsg
-    echo a:str
-    echohl None
-endfunction
 
 " check status {{{
 function! pets#status() abort
@@ -148,6 +143,12 @@ function! s:float_open(
     endif
 
     return [bid, pid]
+endfunction
+
+function! s:echo_err(str) abort
+    echohl ErrorMsg
+    echo a:str
+    echohl None
 endfunction
 
 function! pets#get_all_pet_names() abort
@@ -332,16 +333,18 @@ function! pets#put_pet(name, ...) abort
                 \ 'image': img,
                 \ 'pos': [h, w],
                 \ 'join_time': localtime(),
-                \ 'friends': [],
+                \ 'friends': {},
+                \ 'is_parent': v:false,
                 \ }
     let s:pets_status.pets[idx] = pet_dict
     if len(s:pets_status.pets) > s:max_pets
         let idx = min(keys(s:pets_status.pets))
-        call pets#leave_pet(0, idx)
+        call pets#leave_pet('leave', idx)
     endif
 endfunction
 
-function! pets#leave_pet(all_close, ...) abort
+function! pets#leave_pet(type, ...) abort
+    " type: leave (PetsLeave), close (PetsClose), lifetime
     if !has_key(s:pets_status, 'pets') || empty(s:pets_status.pets)
         call s:echo_err('there is no pets in garden.')
         return
@@ -382,14 +385,23 @@ function! pets#leave_pet(all_close, ...) abort
     elseif has('nvim')
         call nvim_win_close(pid, v:false)
     endif
-    call s:echo_msg(printf('%s(%s): "Bye!"', name, nick))
-    " friends say bye.
-    if !a:all_close
-        for fid in opt.friends
+    " say bye.
+    if a:type == 'lifetime'
+        call s:echo_msg(printf('message: %s(%s) is gone.', name, nick))
+        for fid in keys(opt.friends)
             let friend = s:pets_status.pets[fid]
-            call s:echo_msg(printf('%s(%s): "Bye, %s(%s)!"', friend.name, friend.nickname, name, nick))
-            call remove(friend.friends, match(friend.friends, index))
+            call s:echo_msg(printf('%s(%s): "Sorry for your loss, %s(%s)."', friend.name, friend.nickname, name, nick))
+            call remove(friend.friends, index)
         endfor
+    else
+        call s:echo_msg(printf('%s(%s): "Bye!"', name, nick))
+        if a:type == 'leave'
+            for fid in keys(opt.friends)
+                let friend = s:pets_status.pets[fid]
+                call s:echo_msg(printf('%s(%s): "Bye, %s(%s)!"', friend.name, friend.nickname, name, nick))
+                call remove(friend.friends, index)
+            endfor
+        endif
     endif
     " remove status.
     call remove(s:pets_status.pets, index)
@@ -404,6 +416,11 @@ function! <SID>pets_cb(index, timer_id) abort
     let garden = s:pets_status.garden
     let wrange = garden['wrange']
     let hrange = garden['hrange']
+
+    if localtime()-opt.join_time > s:lifetime
+        call pets#leave_pet('lifetime', a:index)
+        return
+    endif
 
     if hrange[0] >= line
         let hnext = line+1
@@ -447,19 +464,31 @@ function! <SID>pets_cb(index, timer_id) abort
         if idx == a:index
             continue
         endif
-        if match(opt.friends, idx) != -1
+        if match(keys(opt.friends), idx) != -1
             " already friend
-            continue
-        endif
-        let join_time = max([pets[idx].join_time, opt.join_time])
-        let is_time = localtime()-join_time >= s:friend_time
-        let is_sep = abs(opt.pos[0]-pets[idx].pos[0]) <= s:friend_sep
-                    \ && abs(opt.pos[1]-pets[idx].pos[1]) <= s:friend_sep
-        if is_time && is_sep
-            call s:echo_msg(printf('%s(%s) and %s(%s): "We are friends!"',
-                        \ opt.name, opt.nickname, pets[idx].name, pets[idx].nickname))
-            call add(opt.friends, idx)
-            call add(pets[idx].friends, a:index)
+            let friend = s:pets_status.pets[idx]
+            if (localtime()-opt.friends[idx] >= s:lifetime/2)
+                        \ && opt.name == friend.name
+                        \ && !opt.is_parent
+                        \ && !friend.is_parent
+                let s:max_pets += 1
+                let new_name = opt.nickname[:1]..friend.nickname[:1]..'Jr'
+                call pets#put_pet(opt.name, new_name)
+                call s:echo_msg(printf('message: %s(%s) is born!', opt.name, new_name))
+                let opt.is_parent = v:true
+                let friend.is_parent = v:true
+            endif
+        else
+            let join_time = max([pets[idx].join_time, opt.join_time])
+            let is_time = localtime()-join_time >= s:friend_time
+            let is_sep = abs(opt.pos[0]-pets[idx].pos[0]) <= s:friend_sep
+                        \ && abs(opt.pos[1]-pets[idx].pos[1]) <= s:friend_sep
+            if is_time && is_sep
+                call s:echo_msg(printf('%s(%s) and %s(%s): "We are friends!"',
+                            \ opt.name, opt.nickname, pets[idx].name, pets[idx].nickname))
+                let opt.friends[idx] = localtime()
+                let pets[idx].friends[a:index] = localtime()
+            endif
         endif
     endfor
 endfunction
@@ -468,7 +497,7 @@ function! pets#close()
     " clear pets
     if has_key(s:pets_status, 'pets')
         for idx in keys(s:pets_status.pets)
-            call pets#leave_pet(1, idx)
+            call pets#leave_pet('close', idx)
         endfor
         call remove(s:pets_status, 'pets')
     endif
@@ -519,7 +548,7 @@ function! s:pets_select_leave_pets(arglead, cmdline, cursorpos) abort
     return filter(res, '!stridx(v:val, a:arglead)')
 endfunction
 command! -nargs=+ -complete=customlist,s:pets_get_names PetsJoin call pets#put_pet(<f-args>)
-command! -nargs=? -complete=customlist,s:pets_select_leave_pets PetsLeave call pets#leave_pet(0, <f-args>)
+command! -nargs=? -complete=customlist,s:pets_select_leave_pets PetsLeave call pets#leave_pet('leave', <f-args>)
 command! PetsClose call pets#close()
 command! PetsMessages call pets#message_log()
 
