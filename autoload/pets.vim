@@ -234,6 +234,8 @@ function! pets#create_garden() abort
     let height = get(g:, 'pets_garden_height', &lines/3)
     let pos = get(g:, 'pets_garden_pos', [&lines-&cmdheight-1, &columns-1, 'botright'])
     let bg = s:get_bg(height, width)
+    let lifetime_enable = get(g:, 'pets_lifetime_enable', 1)
+    let birth_enable = get(g:, 'pets_birth_enable', 1)
 
     if pos[2][:2] == 'bot'
         let cur_h = pos[0]
@@ -285,6 +287,8 @@ function! pets#create_garden() abort
                 \ 'wrange': wran,
                 \ 'hrange': hran,
                 \ 'tab': tabpagenr(),
+                \ 'lifetime': lifetime_enable,
+                \ 'birth': birth_enable,
                 \ }
     return v:true
 endfunction
@@ -416,8 +420,10 @@ function! <SID>pets_cb(index, timer_id) abort
     let garden = s:pets_status.garden
     let wrange = garden['wrange']
     let hrange = garden['hrange']
+    let lifetime_enable = s:pets_status.garden.lifetime
+    let birth_enable = s:pets_status.garden.birth
 
-    if localtime()-opt.join_time > s:lifetime
+    if lifetime_enable && (localtime()-opt.join_time > s:lifetime)
         call pets#leave_pet('lifetime', a:index)
         return
     endif
@@ -467,11 +473,13 @@ function! <SID>pets_cb(index, timer_id) abort
         if match(keys(opt.friends), idx) != -1
             " already friend
             let friend = s:pets_status.pets[idx]
-            if (localtime()-opt.friends[idx] >= s:lifetime/2)
+            if birth_enable && (localtime()-opt.friends[idx] >= s:lifetime/2)
                         \ && opt.name == friend.name
                         \ && !opt.is_parent
                         \ && !friend.is_parent
-                let s:max_pets += 1
+                if lifetime_enable
+                    let s:max_pets += 1
+                endif
                 let new_name = opt.nickname[:1]..friend.nickname[:1]..'Jr'
                 call pets#put_pet(opt.name, new_name)
                 call s:echo_msg(printf('message: %s(%s) is born!', opt.name, new_name))
