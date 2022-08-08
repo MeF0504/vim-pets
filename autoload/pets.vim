@@ -289,6 +289,7 @@ function! pets#create_garden() abort
                 \ 'tab': tabpagenr(),
                 \ 'lifetime': lifetime_enable,
                 \ 'birth': birth_enable,
+                \ 'max_pets': s:max_pets,
                 \ }
     return v:true
 endfunction
@@ -338,10 +339,11 @@ function! pets#put_pet(name, ...) abort
                 \ 'pos': [h, w],
                 \ 'join_time': localtime(),
                 \ 'friends': {},
-                \ 'is_parent': v:false,
+                \ 'partner': -1,
+                \ 'children': 0,
                 \ }
     let s:pets_status.pets[idx] = pet_dict
-    if len(s:pets_status.pets) > s:max_pets
+    if len(s:pets_status.pets) > s:pets_status.garden.max_pets
         let idx = min(keys(s:pets_status.pets))
         call pets#leave_pet('leave', idx)
     endif
@@ -473,18 +475,29 @@ function! <SID>pets_cb(index, timer_id) abort
         if match(keys(opt.friends), idx) != -1
             " already friend
             let friend = s:pets_status.pets[idx]
-            if birth_enable && (localtime()-opt.friends[idx] >= s:lifetime/2)
-                        \ && opt.name == friend.name
-                        \ && !opt.is_parent
-                        \ && !friend.is_parent
+            if opt.partner == -1
+                let is_birth = (opt.name == friend.name)
+                            \ && (friend.partner == -1)
+                            \ && (opt.children == 0)
+                let bias = 1/2.0
+            else
+                let is_birth = (idx == opt.partner)
+                            \ && (opt.children < 2)
+                let bias = 3/4.0
+            endif
+            if birth_enable
+                        \ && (localtime()-opt.friends[idx] >= s:lifetime*bias)
+                        \ && is_birth
                 if lifetime_enable
-                    let s:max_pets += 1
+                    let s:pets_status.garden.max_pets += 1
                 endif
-                let new_name = opt.nickname[:1]..friend.nickname[:1]..'Jr'
+                let opt.partner = idx
+                let friend.partner = a:index
+                let opt.children += 1
+                let friend.children += 1
+                let new_name = a:index..idx..'Jr'..opt.children
                 call pets#put_pet(opt.name, new_name)
                 call s:echo_msg(printf('message: %s(%s) is born!', opt.name, new_name))
-                let opt.is_parent = v:true
-                let friend.is_parent = v:true
             endif
         else
             let join_time = max([pets[idx].join_time, opt.join_time])
