@@ -250,7 +250,7 @@ function! pets#create_garden() abort
         return v:false
     endif
 
-     let [bid, pid] = s:float_open(bg, pos[0], pos[1], 'Normal', 98,
+     let [bid, pid] = s:float_open(bg, pos[0], pos[1], 'Normal', 48,
                 \ pos[2], width, height, 1)
      call win_execute(pid, printf('call %sbg_setting()', expand('<SID>')))
 
@@ -321,7 +321,7 @@ function! pets#put_pet(name, ...) abort
     let w = wran[0]+rand()%(wran[1]-wran[0])
     let hran = s:pets_status.garden.hrange
     let h = hran[0]+rand()%(hran[1]-hran[0])
-    let [bid, pid] = s:float_open(img, h, w, 'Normal', 99, 'botright', 2, 1, 0)
+    let [bid, pid] = s:float_open(img, h, w, 'Normal', 49, 'botright', 2, 1, 0)
     let idx = s:idx
     let s:idx += 1
 
