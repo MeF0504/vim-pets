@@ -474,6 +474,10 @@ function! <SID>pets_cb(index, timer_id) abort
         endif
         if match(keys(opt.friends), idx) != -1
             " already friend
+            if !has_key(pets, idx)
+                " suppress error message
+                continue
+            endif
             let friend = s:pets_status.pets[idx]
             if opt.partner == -1
                 let is_birth = (opt.name == friend.name)
@@ -500,6 +504,10 @@ function! <SID>pets_cb(index, timer_id) abort
                 call s:echo_msg(printf('message: %s(%s) is born!', opt.name, new_name))
             endif
         else
+            if !has_key(pets, idx)
+                " suppress error message
+                continue
+            endif
             let join_time = max([pets[idx].join_time, opt.join_time])
             let is_time = localtime()-join_time >= s:friend_time
             let is_sep = abs(opt.pos[0]-pets[idx].pos[0]) <= s:friend_sep
