@@ -56,6 +56,20 @@ function! pets#status() abort
 endfunction
 " }}}
 
+function! s:set_config(var_name, default) abort
+    if exists(printf('*pets#%s#config', s:pets_status.world))
+        let config = call(printf('pets#%s#config', s:pets_status.world), [])
+    else
+        let config = {}
+    endif
+    if has_key(config, a:var_name)
+        call add(s:config_over, a:var_name)
+        return config[a:var_name]
+    else
+        return get(g:, a:var_name, a:default)
+    endif
+endfunction
+
 " setting functions {{{
 " function! s:set_pet_col() abort
 "     " highlight PetsBG ctermbg=0 ctermfg=fg guibg=Black guifg=fg
@@ -230,12 +244,13 @@ function! pets#create_garden() abort
     endif
 
     " set configure
-    let width = get(g:, 'pets_garden_width', &columns/2)
-    let height = get(g:, 'pets_garden_height', &lines/3)
-    let pos = get(g:, 'pets_garden_pos', [&lines-&cmdheight-1, &columns-1, 'botright'])
+    let s:config_over = []
+    let width = s:set_config('pets_garden_width', &columns/2)
+    let height = s:set_config('pets_garden_height', &lines/3)
+    let pos = s:set_config('pets_garden_pos', [&lines-&cmdheight-1, &columns-1, 'botright'])
     let bg = s:get_bg(height, width)
-    let lifetime_enable = get(g:, 'pets_lifetime_enable', 1)
-    let birth_enable = get(g:, 'pets_birth_enable', 1)
+    let lifetime_enable = s:set_config('pets_lifetime_enable', 1)
+    let birth_enable = s:set_config('pets_birth_enable', 1)
 
     if pos[2][:2] == 'bot'
         let cur_h = pos[0]
@@ -290,7 +305,9 @@ function! pets#create_garden() abort
                 \ 'lifetime': lifetime_enable,
                 \ 'birth': birth_enable,
                 \ 'max_pets': s:max_pets,
+                \ 'config_over': s:config_over,
                 \ }
+    unlet s:config_over
     return v:true
 endfunction
 
