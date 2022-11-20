@@ -343,7 +343,8 @@ function! pets#put_pet(name, ...) abort
     let idx = s:idx
     let s:idx += 1
 
-    call s:echo_msg(printf('%s(%s): "Hey!"', a:name, nick))
+    " Hey!
+    call s:echo_msg(printf('%s(%s): %s', a:name, nick, nr2char(0x1f603)))
     let tid = timer_start(1000, function(expand('<SID>').'pets_cb', [idx]), {'repeat':-1})
 
     let pet_dict = {
@@ -413,15 +414,20 @@ function! pets#leave_pet(type, ...) abort
         call s:echo_msg(printf('message: %s(%s) is gone.', name, nick))
         for fid in keys(opt.friends)
             let friend = s:pets_status.pets[fid]
-            call s:echo_msg(printf('%s(%s): "Sorry for your loss, %s(%s)."', friend.name, friend.nickname, name, nick))
+            " loss
+            call s:echo_msg(printf('%s(%s): %s',
+                        \ friend.name, friend.nickname, nr2char(0x1f622)))
             call remove(friend.friends, index)
         endfor
     else
-        call s:echo_msg(printf('%s(%s): "Bye!"', name, nick))
+        " Bye
+        call s:echo_msg(printf('%s(%s): %s', name, nick, nr2char(0x1f44b)))
         if a:type == 'leave'
             for fid in keys(opt.friends)
                 let friend = s:pets_status.pets[fid]
-                call s:echo_msg(printf('%s(%s): "Bye, %s(%s)!"', friend.name, friend.nickname, name, nick))
+                " Bye
+                call s:echo_msg(printf('%s(%s): %s',
+                            \ friend.name, friend.nickname, nr2char(0x1f44b)))
                 call remove(friend.friends, index)
             endfor
         endif
@@ -530,8 +536,11 @@ function! <SID>pets_cb(index, timer_id) abort
             let is_sep = abs(opt.pos[0]-pets[idx].pos[0]) <= s:friend_sep
                         \ && abs(opt.pos[1]-pets[idx].pos[1]) <= s:friend_sep
             if is_time && is_sep
-                call s:echo_msg(printf('%s(%s) and %s(%s): "We are friends!"',
-                            \ opt.name, opt.nickname, pets[idx].name, pets[idx].nickname))
+                " friends
+                call s:echo_msg(printf('%s(%s) and %s(%s): %s',
+                            \ opt.name, opt.nickname,
+                            \ pets[idx].name, pets[idx].nickname,
+                            \ nr2char(0x1f60a)))
                 let opt.friends[idx] = localtime()
                 let pets[idx].friends[a:index] = localtime()
             endif
