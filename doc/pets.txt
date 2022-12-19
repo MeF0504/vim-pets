@@ -1,0 +1,179 @@
+*pets.txt* Put small animals in your text editor.
+
+==============================================================================
+CONTENTS						 *pets-contents*
+
+Introduction	|pets-introduction|
+Usage		|pets-usage|
+Commands	|pets-commands|
+Options		|pets-options|
+Extension	|pets-extension|
+License		|pets-license|
+
+==============================================================================
+INTRODUCTION						*pets-introduction*
+
+Put small animals in your text editor.
+
+As you know, this plugin is strongly inspired by vscode-pets (https://marketplace.visualstudio.com/items?itemName=tonybaloney.vscode-pets)
+
+==============================================================================
+USAGE							*pets-usage*
+
+At the beginning you can only use |:Pets| command. This command creates a
+"garden" in the window and put a pet.
+After you create a garden, you can add a pet by |:PetsJoin|, remove a pet from
+the garden by |:PetsLeave|, and remove all pets and close the garden by
+|:PetsClose|.
+
+==============================================================================
+COMMANDS						*pets-commands*
+
+:Pets [{pet-type} [{nickname}]]				*:Pets*
+
+Create a "garden" and put a pet in the garden. If {pet-type} is not specified,
+|g:pets_default_pet| is used. {nickname} is a nickname of the put pet, and if
+this is not specified, index number is use.
+The available {pet-type} is "dog", "cat", "rabbit", and "t-rex" in default, but
+you can extend the available {pets-type}. Also see |pets-extension|.
+There is only one garden that you can at the same time, and if there is
+already a garden, this command will fail.
+
+:PetsJoin {pets-type} [{nickname}]			*:PetsJoin*
+
+Put a new pet in the existing garden. If there no garden in current tab, this
+command is failed.
+The available {pets-type} and the handling of {nickname} is the same as
+|:Pets|.
+
+:PetsLeave [{nickname}]					*:PetsLeave*
+
+The pet of {nickname} leave from the garden. Completion is useful to specify
+the pet. If {nickname} is not specified, the oldest pet leave.
+
+:PetsClose						*:PetsClose*
+
+All pets in the garden leave and close the garden. All messages are also
+removed.
+
+:PetsMessages						*:PetsMessages*
+
+Show all messages and time stamps shown after when the garden is created.
+
+==============================================================================
+OPTIONS							*pets-options*
+
+These settings may overwrriten in the extension plugins. Also see
+|pets-extension|.
+
+g:pets_default_pet					*g:pets_default_pet*
+	type: |String|
+	default: "dog"
+
+The {pet-type} joinning when |:Pets| command is called without specify the
+pet name.
+
+g:pets_lifetime_enable				*g:pets_lifetime_enable*
+	type: |Number|
+	default: 1
+
+Enable the "lifetime" system. If set 1, pets will go about 10 minutes after
+join the garden.
+
+g:pets_birthtime_enable				*g:pets_birthtime_enable*
+	type: |Number|
+	default: 1
+
+Enable the "birth" system. If set 1, new pet will born if there is a pair of
+the same {pets-type}.
+
+g:pets_garden_width					*g:pets_garden_width*
+	type: |Number|
+	default: &columns/2
+
+Set the width of the garden.
+
+g:pets_garden_height					*g:pets_garden_height*
+	type: |Number|
+	default: &lines/3
+
+Set the height of the garden.
+
+g:pets_garden_pos					*g:pets_garden_pos*
+	type: |List| of configs.
+	default: [&lines-&cmdheight-1, &columns-1, "botright"]
+
+Set the position of the garden. This list contains three parameters, 
+[line(number), collum(number), position(string)].
+	The Available argument of position is "topleft", "topright", "botleft"
+	and "botright".
+	In Vim, these values are assigned to the "line", "col", and "pos"
+	parameters of |popup_create-arguments|.
+	In Neovim, these values are assigned to the "row", "col", and "anchor"
+	parameters of the {config} of |nvim_open_win|. The position argument is
+	converted to fit "anchor" argument.
+
+==============================================================================
+EXTENSION						*pets-extension*
+
+This section explains how to make vim-pets extension plugin. Please also see
+the sample of an extension plugin (https://github.com/MeF0504/vim-pets-ocean).
+
+The extension plugin must contain two files;
+	* autoload/pets/{world-name}.vim
+	* plugin/pets/{world-name}.vim
+Here, {world-name} is a string to specify the extension plugin. In the above
+sample, "ocean" is used. In the base plugin, "default" is used. Therefore,
+"default" is not available.
+
+plugin/pets-{world-name}.vim~
+In this file, you must add your {world-name} in `g:pets_worlds`. >
+	let g:pets_worlds = get(g:, 'pets_worlds', [])
+	call add(g:pets_worlds, 'ocean')
+<
+
+autoload/pets/{world-name}.vim~
+This file contains follow functions.
+	* function `pets#{world-name}#get_pet()`
+		* input: {pets-type}
+		* return: pet's image character
+		Set the image of given pet. The return value should be a
+		character.
+	* function `pets#{world-name}#get_pet_names()`
+		* input: none
+		* return: list of available {pets-type}.
+		Return the list of available pet names. This function is used
+		to get available all {pets-type}
+	* function `pets#{world-name}#get_bg()`
+		* input: none
+		* return: list of string of background image. Length of each
+		  string should be the same.
+		Set the background of the garden. The background images are
+		automatically extended or cut to fit the size of garden.
+	* function `pets#{world-name}#bg_setting()` (optional)
+		* input: none
+		* return: none
+		This function is called after creating the garden. You can set
+		highlight colors of the background and so on using this
+		function.
+	* function `pets#{world-name}#config()` (optional)
+		* input: none
+		* return: dictionary
+		This function is used to overwrite the optional configuration.
+		The keys of this dictionary are correspond to |pets-options|, >
+			pets_lifetime_enable
+			pets_birth_enable
+			pets_garden_width
+			pets_garden_height
+			pets_garden_pos
+<		This function only effect this world.
+
+		and they are overwritten by the values of the dictionary.
+
+==============================================================================
+LICENSE							*pets-license*
+
+The MIT License (https://github.com/MeF0504/vim-pets/blob/main/LICENSE)
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:noet:fen:fdl=0:
