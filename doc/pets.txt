@@ -1,7 +1,7 @@
 *pets.txt* Put small animals in your text editor.
 
 ==============================================================================
-CONTENTS						 *pets-contents*
+CONTENTS                                                         *pets-contents*
 
 Introduction	|pets-introduction|
 Usage		|pets-usage|
@@ -11,14 +11,15 @@ Extension	|pets-extension|
 License		|pets-license|
 
 ==============================================================================
-INTRODUCTION						*pets-introduction*
+INTRODUCTION                                                 *pets-introduction*
 
 Put small animals in your text editor.
 
-As you know, this plugin is strongly inspired by vscode-pets (https://marketplace.visualstudio.com/items?itemName=tonybaloney.vscode-pets)
+As you know, this plugin is strongly inspired by vscode-pets
+(https://marketplace.visualstudio.com/items?itemName=tonybaloney.vscode-pets)
 
 ==============================================================================
-USAGE							*pets-usage*
+USAGE                                                               *pets-usage*
 
 At the beginning you can only use |:Pets| command. This command creates a
 "garden" in the window and put a pet.
@@ -27,9 +28,9 @@ the garden by |:PetsLeave|, and remove all pets and close the garden by
 |:PetsClose|.
 
 ==============================================================================
-COMMANDS						*pets-commands*
+COMMANDS                                                         *pets-commands*
 
-:Pets [{pet-type} [{nickname}]]				*:Pets*
+:Pets [{pet-type} [{nickname}]]                                          *:Pets*
 
 Create a "garden" and put a pet in the garden. If {pet-type} is not specified,
 |g:pets_default_pet| is used. {nickname} is a nickname of the put pet, and if
@@ -39,67 +40,67 @@ you can extend the available {pets-type}. Also see |pets-extension|.
 There is only one garden that you can at the same time, and if there is
 already a garden, this command will fail.
 
-:PetsJoin {pets-type} [{nickname}]			*:PetsJoin*
+:PetsJoin {pets-type} [{nickname}]                                   *:PetsJoin*
 
 Put a new pet in the existing garden. If there no garden in current tab, this
 command is failed.
 The available {pets-type} and the handling of {nickname} is the same as
 |:Pets|.
 
-:PetsLeave [{nickname}]					*:PetsLeave*
+:PetsLeave [{nickname}]                                             *:PetsLeave*
 
 The pet of {nickname} leave from the garden. Completion is useful to specify
 the pet. If {nickname} is not specified, the oldest pet leave.
 
-:PetsClose						*:PetsClose*
+:PetsClose                                                          *:PetsClose*
 
 All pets in the garden leave and close the garden. All messages are also
 removed.
 
-:PetsMessages						*:PetsMessages*
+:PetsMessages                                                    *:PetsMessages*
 
 Show all messages and time stamps shown after when the garden is created.
 
 ==============================================================================
-OPTIONS							*pets-options*
+OPTIONS                                                           *pets-options*
 
 These settings may overwrriten in the extension plugins. Also see
 |pets-extension|.
 
-g:pets_default_pet					*g:pets_default_pet*
+g:pets_default_pet                                          *g:pets_default_pet*
 	type: |String|
 	default: "dog"
 
 The {pet-type} joinning when |:Pets| command is called without specify the
 pet name.
 
-g:pets_lifetime_enable				*g:pets_lifetime_enable*
+g:pets_lifetime_enable                                  *g:pets_lifetime_enable*
 	type: |Number|
 	default: 1
 
 Enable the "lifetime" system. If set 1, pets will go about 10 minutes after
 join the garden.
 
-g:pets_birthtime_enable				*g:pets_birthtime_enable*
+g:pets_birthtime_enable                                *g:pets_birthtime_enable*
 	type: |Number|
 	default: 1
 
 Enable the "birth" system. If set 1, new pet will born if there is a pair of
 the same {pets-type}.
 
-g:pets_garden_width					*g:pets_garden_width*
+g:pets_garden_width                                        *g:pets_garden_width*
 	type: |Number|
 	default: &columns/2
 
 Set the width of the garden.
 
-g:pets_garden_height					*g:pets_garden_height*
+g:pets_garden_height                                      *g:pets_garden_height*
 	type: |Number|
 	default: &lines/3
 
 Set the height of the garden.
 
-g:pets_garden_pos					*g:pets_garden_pos*
+g:pets_garden_pos                                            *g:pets_garden_pos*
 	type: |List| of configs.
 	default: [&lines-&cmdheight-1, &columns-1, "botright"]
 
@@ -114,7 +115,7 @@ Set the position of the garden. This list contains three parameters,
 	converted to fit "anchor" argument.
 
 ==============================================================================
-EXTENSION						*pets-extension*
+EXTENSION                                                       *pets-extension*
 
 This section explains how to make vim-pets extension plugin. Please also see
 the sample of an extension plugin (https://github.com/MeF0504/vim-pets-ocean).
@@ -171,7 +172,7 @@ This file contains follow functions.
 		and they are overwritten by the values of the dictionary.
 
 ==============================================================================
-LICENSE							*pets-license*
+LICENSE                                                           *pets-license*
 
 The MIT License (https://github.com/MeF0504/vim-pets/blob/main/LICENSE)
 
