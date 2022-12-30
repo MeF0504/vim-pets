@@ -52,6 +52,10 @@ The available {pets-type} and the handling of {nickname} is the same as
 The pet of {nickname} leave from the garden. Completion is useful to specify
 the pet. If {nickname} is not specified, the oldest pet leave.
 
+:PetsThrowBall                                                  *:PetsThrowBall*
+
+Throw a ball. Pets gather in a ball.
+
 :PetsClose                                                          *:PetsClose*
 
 All pets in the garden leave and close the garden. All messages are also

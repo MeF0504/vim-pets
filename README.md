@@ -17,6 +17,10 @@ After you create a garden of pets, you can add and remove pet as following.
 PetsJoin animal_name [nickname]
 PetsLeave [animal_name(nickname)]
 ```
+You also can throw a ball
+```
+PetsThrowBall
+```
 To Close the garden, please do
 ```
 PetsClose

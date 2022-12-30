@@ -5,6 +5,7 @@ let s:idx = 0
 let s:friend_time = 30 " sec
 let s:friend_sep = 3
 let s:lifetime = 10*60 " sec
+let s:ball_max_count = 10  " 5 sec
 let g:pets_worlds = get(g:, 'pets_worlds', [])
 call add(g:pets_worlds, 'default')
 
@@ -43,6 +44,17 @@ function! pets#status() abort
             endfor
         endfor
         echohl None
+    endif
+    if has_key(s:pets_status, 'ball')
+        echohl Special
+        echo 'ball;'
+        for k in keys(s:pets_status.ball)
+            echohl Identifier
+            echo k
+            echohl None
+            echon ': '
+            echon s:pets_status.ball[k]
+        endfor
     endif
     if has_key(s:pets_status, 'messages')
         echohl Special
@@ -459,7 +471,15 @@ function! <SID>pets_cb(index, timer_id) abort
         let hnext = line-1
     else
         let rand = rand()%100
-        if rand >= 60
+        if has_key(s:pets_status, 'ball')
+            if s:pets_status.ball.pos[0] == line
+                let hnext = line
+            elseif s:pets_status.ball.pos[0] > line
+                let hnext = line+1
+            else
+                let hnext = line-1
+            endif
+        elseif rand >= 60
             let hnext = line+1
         elseif rand >= 40
             let hnext = line
@@ -475,7 +495,15 @@ function! <SID>pets_cb(index, timer_id) abort
         let wnext = col-1
     else
         let rand = rand()%100
-        if rand >= 60
+        if has_key(s:pets_status, 'ball')
+            if s:pets_status.ball.pos[1] == col
+                let wnext = col
+            elseif s:pets_status.ball.pos[1] > col
+                let wnext = col+1
+            else
+                let wnext = col-1
+            endif
+        elseif rand >= 60
             let wnext = col+1
         elseif rand >= 40
             let wnext = col
@@ -581,6 +609,121 @@ function! pets#close()
     let s:idx = 0
 endfunction
 
+function! pets#throw_ball() abort
+    if !has_key(s:pets_status, 'garden')
+        call s:echo_err('Please create garden before.')
+        return
+    endif
+    if s:pets_status.garden.tab != tabpagenr()
+        call s:echo_err('garden is not here.')
+        return
+    endif
+
+    if has_key(s:pets_status, 'ball')
+        return
+    endif
+
+    let img = nr2char(0x26bd)
+    let wran = s:pets_status.garden.wrange
+    let hran = s:pets_status.garden.hrange
+    let start_point = rand()%3
+    if start_point == 0
+        " left side
+        let w = wran[0]
+        let h = hran[1]+(hran[0]-hran[1])*2/3
+    elseif start_point == 1
+        " bottom
+        let w = (wran[0]+wran[1])/2
+        let h = hran[1]
+    else
+        " right side
+        let w = wran[1]
+        let h = hran[1]+(hran[0]-hran[1])/3
+    endif
+    let [bid, pid] = s:float_open(img, h, w, 'Normal', 49, 'botright', 2, 1, 0)
+    let tid = timer_start(500, function(expand('<SID>').'ball_cb', [start_point]), {'repeat':-1})
+
+    let ball_dict = {
+                \ 'buffer': bid,
+                \ 'winID': pid,
+                \ 'timerID': tid,
+                \ 'image': img,
+                \ 'pos': [h, w],
+                \ 'count': 0,
+                \ }
+    let s:pets_status.ball = ball_dict
+endfunction
+
+function! s:ball_cb(start_point, tid) abort
+    let opt = s:pets_status.ball
+    let pid = opt['winID']
+    let line = opt['pos'][0]
+    let col = opt['pos'][1]
+    let count = opt['count']
+    let garden = s:pets_status.garden
+    let wrange = garden['wrange']
+    let hrange = garden['hrange']
+
+    if count >= s:ball_max_count
+        call s:clean_ball()
+        return
+    endif
+
+    if hrange[0] >= line
+        let hnext = line+1
+    elseif hrange[1] <= line
+        let hnext = line-1
+    else
+        if a:start_point == 0
+            let hnext = count%2==0 ? line+1 : line-1
+        elseif a:start_point == 1
+            let hnext = line-1
+        else
+            let hnext = count%2==0 ? line+1 : line-1
+        endif
+    endif
+    let s:pets_status.ball['pos'][0] = hnext
+
+    if wrange[0] >= col
+        let wnext = col+1
+    elseif wrange[1] <= col
+        let wnext = col-1
+    else
+        if a:start_point == 0
+            let wnext = col+1
+        elseif a:start_point == 1
+            let wnext = count%2==0 ? col+1 : col-1
+        else
+            let wnext = col-1
+        endif
+    endif
+    let s:pets_status.ball['pos'][1] = wnext
+
+    let s:pets_status.ball.count += 1
+    if has('popupwin')
+        call popup_setoptions(pid, {'col': wnext, 'line': hnext})
+    elseif has('nvim')
+        call nvim_win_set_config(pid, {'relative': 'editor', 'col': wnext, 'row': hnext})
+    endif
+endfunction
+
+
+function! s:clean_ball() abort
+    if !has_key(s:pets_status, 'ball')
+        return
+    endif
+    let opt = s:pets_status.ball
+    let pid = opt['winID']
+    let tid = opt['timerID']
+    call timer_stop(tid)
+    if has('popupwin')
+        call popup_close(pid)
+    elseif has('nvim')
+        call nvim_win_close(pid, v:false)
+    endif
+    call remove(s:pets_status, 'ball')
+endfunction
+
 function! pets#message_log() abort
     if has_key(s:pets_status, 'messages')
         for msg in s:pets_status.messages
@@ -606,6 +749,7 @@ command! -nargs=+ -complete=customlist,s:pets_get_names PetsJoin call pets#put_p
 command! -nargs=? -complete=customlist,s:pets_select_leave_pets PetsLeave call pets#leave_pet('leave', <f-args>)
 command! PetsClose call pets#close()
 command! PetsMessages call pets#message_log()
+command! PetsThrowBall call pets#throw_ball()
 
 " call s:set_pet_col()
 " augroup Pets
