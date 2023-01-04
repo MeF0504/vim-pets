@@ -659,12 +659,12 @@ function! s:ball_cb(start_point, tid) abort
     let pid = opt['winID']
     let line = opt['pos'][0]
     let col = opt['pos'][1]
-    let count = opt['count']
+    let bcount = opt['count']
     let garden = s:pets_status.garden
     let wrange = garden['wrange']
     let hrange = garden['hrange']
 
-    if count >= s:ball_max_count
+    if bcount >= s:ball_max_count
         call s:clean_ball()
         return
     endif
@@ -675,11 +675,11 @@ function! s:ball_cb(start_point, tid) abort
         let hnext = line-1
     else
         if a:start_point == 0
-            let hnext = count%2==0 ? line+1 : line-1
+            let hnext = bcount%2==0 ? line+1 : line-1
         elseif a:start_point == 1
             let hnext = line-1
         else
-            let hnext = count%2==0 ? line+1 : line-1
+            let hnext = bcount%2==0 ? line+1 : line-1
         endif
     endif
     let s:pets_status.ball['pos'][0] = hnext
@@ -692,7 +692,7 @@ function! s:ball_cb(start_point, tid) abort
         if a:start_point == 0
             let wnext = col+1
         elseif a:start_point == 1
-            let wnext = count%2==0 ? col+1 : col-1
+            let wnext = bcount%2==0 ? col+1 : col-1
         else
             let wnext = col-1
         endif
