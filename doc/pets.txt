@@ -85,6 +85,12 @@ g:pets_lifetime_enable                                  *g:pets_lifetime_enable*
 Enable the "lifetime" system. If set 1, pets will go about 10 minutes after
 join the garden.
 
+g:pets_ball_image                                            *g:pets_ball_image*
+	type: character
+	default: "⚽"
+
+The image of the thrown ball.
+
 g:pets_birthtime_enable                                *g:pets_birthtime_enable*
 	type: |Number|
 	default: 1

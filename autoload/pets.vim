@@ -623,7 +623,8 @@ function! pets#throw_ball() abort
         return
     endif
 
-    let img = nr2char(0x26bd)
+    let s:config_over = []
+    let img = s:set_config('pets_ball_image', nr2char(0x26bd))
     let wran = s:pets_status.garden.wrange
     let hran = s:pets_status.garden.hrange
     let start_point = rand()%3
@@ -650,7 +651,9 @@ function! pets#throw_ball() abort
                 \ 'image': img,
                 \ 'pos': [h, w],
                 \ 'count': 0,
+                \ 'config_over': s:config_over,
                 \ }
+    unlet s:config_over
     let s:pets_status.ball = ball_dict
 endfunction
 
