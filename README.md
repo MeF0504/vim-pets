@@ -51,7 +51,6 @@ Plug 'MeF0504/vim-pets'
 
 - `g:pets_default_pet` (string): The pet name joinning when `:Pets` command called without specify the pet name. default: 'dog'
 - `g:pets_lifetime_enable` (number): Enable the 'lifetime' system. If set 1, pets will go about 10 minutes after join the garden. default: 1
-- `g:pets_ball_image` (character): The image of thrown ball. default: "⚽"
 - `g:pets_birth_enable` (number): Enable the 'birth' system. If set 1, new pet will born. default: 1
 - `g:pets_garden_width` (number): Width of the garden. default: &columns/2
 - `g:pets_garden_height` (number): Height of the garden. default: &lines/3

@@ -85,12 +85,6 @@ g:pets_lifetime_enable                                  *g:pets_lifetime_enable*
 Enable the "lifetime" system. If set 1, pets will go about 10 minutes after
 join the garden.
 
-g:pets_ball_image                                            *g:pets_ball_image*
-	type: character
-	default: "⚽"
-
-The image of the thrown ball.
-
 g:pets_birthtime_enable                                *g:pets_birthtime_enable*
 	type: |Number|
 	default: 1
@@ -138,13 +132,19 @@ sample, "ocean" is used. In the base plugin, "default" is used. Therefore,
 "default" is not available.
 
 plugin/pets-{world-name}.vim~
+                                                                 *g:pets_worlds*
 In this file, you must add your {world-name} in `g:pets_worlds`. >
 	let g:pets_worlds = get(g:, 'pets_worlds', [])
 	call add(g:pets_worlds, 'ocean')
 <
 
 autoload/pets/{world-name}.vim~
-This file contains follow functions.
+                       *pets-extension-get_pet()* *pets-extension-get_pet_names()*
+                           *pets-extension-get_bg()* *pets-extension-bg_setting()*
+                    *pets-extension-lifetime_enable* *pets-extension-birth_enable*
+                      *pets-extension-garden_width* *pets-extension-garden_height*
+                           *pets-extension-garden_pos* *pets-extension-ball_image*
+This file contains follow functions and option-values.
 	* function `pets#{world-name}#get_pet()`
 		* input: {pets-type}
 		* return: pet's image character
@@ -167,19 +167,28 @@ This file contains follow functions.
 		This function is called after creating the garden. You can set
 		highlight colors of the background and so on using this
 		function.
-	* function `pets#{world-name}#config()` (optional)
-		* input: none
-		* return: dictionary
-		This function is used to overwrite the optional configuration.
-		The keys of this dictionary are correspond to |pets-options|, >
-			pets_lifetime_enable
-			pets_birth_enable
-			pets_garden_width
-			pets_garden_height
-			pets_garden_pos
-<		This function only effect this world.
-
-		and they are overwritten by the values of the dictionary.
+	* value `pets#{world-name}#lifetime_enable` (optional)
+		* type: |Number|
+		This option value set the world-specified
+		|g:pets_lifetime_enable|.
+	* value `pets#{world-name}#birth_enable` (optional)
+		* type: |Number|
+		This option value set the world-specified
+		|g:pets_birthtime_enable|.
+	* value `pets#{world-name}#garden_width` (optional)
+		* type: |Number|
+		This option value set the world-specified
+		|g:pets_garden_width|.
+	* value `pets#{world-name}#garden_height` (optional)
+		* type: |Number|
+		This option value set the world-specified
+		|g:pets_garden_height|.
+	* value `pets#{world-name}#garden_pos` (optional)
+		* type: |List| of configs.
+		This option value set the world-specified |g:pets_garden_pos|.
+	* value `pets#{world-name}#ball_image` (optional)
+		* type: character
+		This option value specify the image of the thrown ball.
 
 ==============================================================================
 LICENSE                                                           *pets-license*

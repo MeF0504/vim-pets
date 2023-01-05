@@ -69,16 +69,10 @@ endfunction
 " }}}
 
 function! s:set_config(var_name, default) abort
-    if exists(printf('*pets#%s#config', s:pets_status.world))
-        let config = call(printf('pets#%s#config', s:pets_status.world), [])
+    if exists(printf("g:pets#%s#%s", s:pets_status.world, a:var_name))
+        return eval(printf("g:pets#%s#%s", s:pets_status.world, a:var_name))
     else
-        let config = {}
-    endif
-    if has_key(config, a:var_name)
-        call add(s:config_over, a:var_name)
-        return config[a:var_name]
-    else
-        return get(g:, a:var_name, a:default)
+        return get(g:, printf("pets_%s", a:var_name), a:default)
     endif
 endfunction
 
@@ -256,13 +250,12 @@ function! pets#create_garden() abort
     endif
 
     " set configure
-    let s:config_over = []
-    let width = s:set_config('pets_garden_width', &columns/2)
-    let height = s:set_config('pets_garden_height', &lines/3)
-    let pos = s:set_config('pets_garden_pos', [&lines-&cmdheight-1, &columns-1, 'botright'])
+    let width = s:set_config('garden_width', &columns/2)
+    let height = s:set_config('garden_height', &lines/3)
+    let pos = s:set_config('garden_pos', [&lines-&cmdheight-1, &columns-1, 'botright'])
     let bg = s:get_bg(height, width)
-    let lifetime_enable = s:set_config('pets_lifetime_enable', 1)
-    let birth_enable = s:set_config('pets_birth_enable', 1)
+    let lifetime_enable = s:set_config('lifetime_enable', 1)
+    let birth_enable = s:set_config('birth_enable', 1)
 
     if pos[2][:2] == 'bot'
         let cur_h = pos[0]
@@ -317,9 +310,7 @@ function! pets#create_garden() abort
                 \ 'lifetime': lifetime_enable,
                 \ 'birth': birth_enable,
                 \ 'max_pets': s:max_pets,
-                \ 'config_over': s:config_over,
                 \ }
-    unlet s:config_over
     return v:true
 endfunction
 
@@ -623,8 +614,7 @@ function! pets#throw_ball() abort
         return
     endif
 
-    let s:config_over = []
-    let img = s:set_config('pets_ball_image', nr2char(0x26bd))
+    let img = s:set_config('ball_image', nr2char(0x26bd))
     let wran = s:pets_status.garden.wrange
     let hran = s:pets_status.garden.hrange
     let start_point = rand()%3
@@ -651,9 +641,7 @@ function! pets#throw_ball() abort
                 \ 'image': img,
                 \ 'pos': [h, w],
                 \ 'count': 0,
-                \ 'config_over': s:config_over,
                 \ }
-    unlet s:config_over
     let s:pets_status.ball = ball_dict
 endfunction
 
