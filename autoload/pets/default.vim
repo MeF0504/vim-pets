@@ -31,8 +31,8 @@ function! pets#default#get_bg() abort
 endfunction
 
 function! pets#default#bg_setting() abort
-    highlight PetsGardenBG1 ctermfg=10 ctermbg=None guifg=Lime guibg=NONE
-    highlight PetsGardenBG2 ctermfg=2 ctermbg=None guifg=Green guibg=NONE
+    highlight PetsGardenBG1 ctermfg=28 ctermbg=None guifg=#309030 guibg=NONE
+    highlight PetsGardenBG2 ctermfg=22 ctermbg=None guifg=#285528 guibg=NONE
     for l in range(1, line('$'))
         if l%2
             call matchaddpos('PetsGardenBG1', [l])
