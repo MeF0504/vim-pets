@@ -5,7 +5,7 @@ let s:idx = 0
 let s:friend_time = 30 " sec
 let s:friend_sep = 3
 let s:lifetime = 10*60 " sec
-let s:ball_max_count = 10  " 5 sec
+let s:ball_max_count = 12  " 12*400/1000 sec
 let g:pets_worlds = get(g:, 'pets_worlds', [])
 call add(g:pets_worlds, 'default')
 
@@ -620,19 +620,20 @@ function! pets#throw_ball() abort
     let start_point = rand()%3
     if start_point == 0
         " left side
-        let w = wran[0]
+        let w = wran[0]+1
         let h = hran[1]+(hran[0]-hran[1])*2/3
     elseif start_point == 1
         " bottom
         let w = (wran[0]+wran[1])/2
-        let h = hran[1]
+        let h = hran[1]-1
     else
         " right side
-        let w = wran[1]
+        let w = wran[1]-1
         let h = hran[1]+(hran[0]-hran[1])/3
     endif
     let [bid, pid] = s:float_open(img, h, w, 'Normal', 49, 'botright', 2, 1, 0)
-    let tid = timer_start(500, function(expand('<SID>').'ball_cb', [start_point]), {'repeat':-1})
+    " 時間間隔は1秒の約数じゃないほうが良さそう
+    let tid = timer_start(400, function(expand('<SID>').'ball_cb', [start_point]), {'repeat':-1})
 
     let ball_dict = {
                 \ 'buffer': bid,
@@ -641,6 +642,7 @@ function! pets#throw_ball() abort
                 \ 'image': img,
                 \ 'pos': [h, w],
                 \ 'count': 0,
+                \ 'ref': v:false,
                 \ }
     let s:pets_status.ball = ball_dict
 endfunction
@@ -651,6 +653,7 @@ function! s:ball_cb(start_point, tid) abort
     let line = opt['pos'][0]
     let col = opt['pos'][1]
     let bcount = opt['count']
+    let reflect = opt['ref']
     let garden = s:pets_status.garden
     let wrange = garden['wrange']
     let hrange = garden['hrange']
@@ -661,14 +664,22 @@ function! s:ball_cb(start_point, tid) abort
     endif
 
     if hrange[0] >= line
+        " bottom
         let hnext = line+1
+        let s:pets_status.ball.ref = !reflect
     elseif hrange[1] <= line
+        " top
         let hnext = line-1
+        let s:pets_status.ball.ref = !reflect
     else
         if a:start_point == 0
             let hnext = bcount%2==0 ? line+1 : line-1
         elseif a:start_point == 1
-            let hnext = line-1
+            if reflect
+                let hnext = line+1
+            else
+                let hnext = line-1
+            endif
         else
             let hnext = bcount%2==0 ? line+1 : line-1
         endif
@@ -676,16 +687,28 @@ function! s:ball_cb(start_point, tid) abort
     let s:pets_status.ball['pos'][0] = hnext
 
     if wrange[0] >= col
+        " left side
         let wnext = col+1
+        let s:pets_status.ball.ref = !reflect
     elseif wrange[1] <= col
+        " right side
         let wnext = col-1
+        let s:pets_status.ball.ref = !reflect
     else
         if a:start_point == 0
-            let wnext = col+1
+            if reflect
+                let wnext = col-1
+            else
+                let wnext = col+1
+            endif
         elseif a:start_point == 1
             let wnext = bcount%2==0 ? col+1 : col-1
         else
-            let wnext = col-1
+            if reflect
+                let wnext = col+1
+            else
+                let wnext = col-1
+            endif
         endif
     endif
     let s:pets_status.ball['pos'][1] = wnext
