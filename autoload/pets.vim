@@ -418,8 +418,9 @@ function! pets#leave_pet(type, ...) abort
         for fid in keys(opt.friends)
             let friend = s:pets_status.pets[fid]
             " loss
-            call s:echo_msg(printf('%s(%s): %s',
-                        \ friend.name, friend.nickname, nr2char(0x1f622)))
+            call s:echo_msg(printf('%s(%s) -> %s(%s): %s',
+                        \ friend.name, friend.nickname, name, nick,
+                        \ nr2char(0x1f622)))
             call remove(friend.friends, index)
         endfor
     else
@@ -429,8 +430,9 @@ function! pets#leave_pet(type, ...) abort
             for fid in keys(opt.friends)
                 let friend = s:pets_status.pets[fid]
                 " Bye
-                call s:echo_msg(printf('%s(%s): %s',
-                            \ friend.name, friend.nickname, nr2char(0x1f44b)))
+                call s:echo_msg(printf('%s(%s) -> %s(%s): %s',
+                            \ friend.name, friend.nickname, name, nick,
+                            \ nr2char(0x1f44b)))
                 call remove(friend.friends, index)
             endfor
         endif
@@ -556,7 +558,7 @@ function! <SID>pets_cb(index, timer_id) abort
                         \ && abs(opt.pos[1]-pets[idx].pos[1]) <= s:friend_sep
             if is_time && is_sep
                 " friends
-                call s:echo_msg(printf('%s(%s) and %s(%s): %s',
+                call s:echo_msg(printf('%s(%s) and %s(%s) are friends: %s',
                             \ opt.name, opt.nickname,
                             \ pets[idx].name, pets[idx].nickname,
                             \ nr2char(0x1f60a)))
