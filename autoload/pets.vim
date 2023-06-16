@@ -307,6 +307,7 @@ function! pets#create_garden() abort
     let bg = s:get_bg(height, width)
     let lifetime_enable = s:set_config('lifetime_enable', 1)
     let birth_enable = s:set_config('birth_enable', 1)
+    let shownn = get(g:, 'pets_shownn', v:false)
 
     if pos[2][:2] == 'bot'
         let cur_h = pos[0]
@@ -361,6 +362,7 @@ function! pets#create_garden() abort
                 \ 'lifetime': lifetime_enable,
                 \ 'birth': birth_enable,
                 \ 'max_pets': s:max_pets,
+                \ 'shownn': shownn,
                 \ }
     return v:true
 endfunction
@@ -396,6 +398,13 @@ function! pets#put_pet(name, ...) abort
     let [bid, pid] = s:float_open(img, h, w, 'Normal', 49, 'botright', 2, 1, 0)
     let idx = s:idx
     let s:idx += 1
+    if s:pets_status.garden.shownn
+        let [nbid, npid] = s:float_open(printf("%s", nick), h-1, w, 'Normal', 49,
+                    \ 'botright', len(nick)+1, 1, 0)
+    else
+        let nbid = -1
+        let npid = -1
+    endif
 
     " Hey!
     call s:echo_msg(printf('%s(%s): %s', a:name, nick, nr2char(0x1f603)))
@@ -413,6 +422,8 @@ function! pets#put_pet(name, ...) abort
                 \ 'friends': {},
                 \ 'partner': -1,
                 \ 'children': 0,
+                \ 'nick_buffer': nbid,
+                \ 'nick_winID': npid,
                 \ }
     let s:pets_status.pets[idx] = pet_dict
     if len(s:pets_status.pets) > s:pets_status.garden.max_pets
@@ -442,8 +453,16 @@ function! pets#leave_pet(type, ...) abort
     " close floating/popup window.
     if has('popupwin')
         call popup_close(pid)
+        if s:pets_status.garden.shownn
+            let npid = opt['nick_winID']
+            call popup_close(npid)
+        endif
     elseif has('nvim')
         call nvim_win_close(pid, v:false)
+        if s:pets_status.garden.shownn
+            let npid = opt['nick_winID']
+            call nvim_win_close(npid, v:false)
+        endif
     endif
     " say bye.
     if a:type == 'lifetime'
@@ -486,11 +505,13 @@ function! <SID>pets_cb(index, timer_id) abort
     let lifetime_enable = s:pets_status.garden.lifetime
     let birth_enable = s:pets_status.garden.birth
 
+    " lifetime
     if lifetime_enable && (localtime()-opt.join_time > s:lifetime)
         call pets#leave_pet('lifetime', a:index)
         return
     endif
 
+    " move
     if hrange[0] >= line
         let hnext = line+1
     elseif hrange[1] <= line
@@ -541,12 +562,21 @@ function! <SID>pets_cb(index, timer_id) abort
 
     if has('popupwin')
         call popup_setoptions(pid, {'col': wnext, 'line': hnext})
+        if s:pets_status.garden.shownn
+            let npid = opt['nick_winID']
+            call popup_setoptions(npid, {'col': wnext, 'line': hnext-1})
+        endif
     elseif has('nvim')
         call nvim_win_set_config(pid, {'relative': 'editor', 'col': wnext, 'row': hnext})
+        if s:pets_status.garden.shownn
+            let npid = opt['nick_winID']
+            call nvim_win_set_config(npid, {'relative': 'editor', 'col': wnext, 'row': hnext-1})
+        endif
     endif
 
     for idx in keys(pets)
         if idx == a:index
+            " myself
             continue
         endif
         if match(keys(opt.friends), idx) != -1
@@ -557,11 +587,13 @@ function! <SID>pets_cb(index, timer_id) abort
             endif
             let friend = s:pets_status.pets[idx]
             if opt.partner == -1
+                " first child
                 let is_birth = (opt.name == friend.name)
                             \ && (friend.partner == -1)
                             \ && (opt.children == 0)
                 let bias = 1/2.0
             else
+                " second child
                 let is_birth = (idx == opt.partner)
                             \ && (opt.children < 2)
                 let bias = 3/4.0
