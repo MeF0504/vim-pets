@@ -212,6 +212,57 @@ function! s:echo_msg(msg) abort
     call add(s:pets_status.messages, time..a:msg)
     echo a:msg
 endfunction
+
+function! s:get_index(args)
+    if empty(a:args)
+        let index = min(keys(s:pets_status.pets))
+    elseif has_key(s:pets_status.pets, a:args[0])
+        let index = a:args[0]
+    else
+        let l = strridx(a:args[0], '(')
+        let r = strridx(a:args[0], ')')
+        let nick = a:args[0][l+1:r-1]
+        let name = a:args[0][:l-1]
+        let index = -1
+        for idx in keys(s:pets_status.pets)
+            let opt = s:pets_status.pets[idx]
+            if opt.name == name && opt.nickname == nick
+                let index = idx
+                break
+            endif
+        endfor
+    endif
+    if !has_key(s:pets_status.pets, index)
+        call echo_err('incorrect pet name or something.')
+        return -1
+    endif
+    return index
+endfunction
+
+function! pets#start_pets_timer() abort
+    if has_key(s:pets_status, 'pets')
+        for i in keys(s:pets_status.pets)
+            if has_key(s:pets_status.pets[i], 'timerID')
+                " already started
+            else
+                let tid = timer_start(1000, function(expand('<SID>').'pets_cb', [i]), {'repeat':-1})
+                let s:pets_status.pets[i]['timerID'] = tid
+            endif
+        endfor
+    endif
+endfunction
+
+function! pets#stop_pets_timer() abort
+    if has_key(s:pets_status, 'pets')
+        for i in keys(s:pets_status.pets)
+            if has_key(s:pets_status.pets[i], 'timerID')
+                let tid =  s:pets_status.pets[i]['timerID']
+                call timer_stop(tid)
+                call remove(s:pets_status.pets[i], 'timerID')
+            endif
+        endfor
+    endif
+endfunction
 " }}}
 
 " main functions
@@ -377,26 +428,8 @@ function! pets#leave_pet(type, ...) abort
         return
     endif
 
-    if empty(a:000)
-        let index = min(keys(s:pets_status.pets))
-    elseif has_key(s:pets_status.pets, a:1)
-        let index = a:1
-    else
-        let l = strridx(a:1, '(')
-        let r = strridx(a:1, ')')
-        let nick = a:1[l+1:r-1]
-        let name = a:1[:l-1]
-        let index = -1
-        for idx in keys(s:pets_status.pets)
-            let opt = s:pets_status.pets[idx]
-            if opt.name == name && opt.nickname == nick
-                let index = idx
-                break
-            endif
-        endfor
-    endif
-    if !has_key(s:pets_status.pets, index)
-        call echo_err('incorrect pet name or something.')
+    let index = s:get_index(a:000)
+    if index == -1
         return
     endif
 
