@@ -99,7 +99,7 @@ function! pets#withyou#close() abort
             call nvim_win_close(pid, v:false)
         endif
     endfor
-    let s:count = 1
+    let s:count = 0
     let s:pids = []
     let s:tids = []
 endfunction
