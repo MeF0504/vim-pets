@@ -126,7 +126,7 @@ the sample of an extension plugin (https://github.com/MeF0504/vim-pets-ocean).
 
 The extension plugin must contain two files;
 	* autoload/pets/{world-name}.vim
-	* plugin/pets/{world-name}.vim
+	* plugin/pets-{world-name}.vim
 Here, {world-name} is a string to specify the extension plugin. In the above
 sample, "ocean" is used. In the base plugin, "default" is used. Therefore,
 "default" is not available.

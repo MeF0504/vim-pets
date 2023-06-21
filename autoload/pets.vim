@@ -212,6 +212,57 @@ function! s:echo_msg(msg) abort
     call add(s:pets_status.messages, time..a:msg)
     echo a:msg
 endfunction
+
+function! s:get_index(args)
+    if empty(a:args)
+        let index = min(keys(s:pets_status.pets))
+    elseif has_key(s:pets_status.pets, a:args[0])
+        let index = a:args[0]
+    else
+        let l = strridx(a:args[0], '(')
+        let r = strridx(a:args[0], ')')
+        let nick = a:args[0][l+1:r-1]
+        let name = a:args[0][:l-1]
+        let index = -1
+        for idx in keys(s:pets_status.pets)
+            let opt = s:pets_status.pets[idx]
+            if opt.name == name && opt.nickname == nick
+                let index = idx
+                break
+            endif
+        endfor
+    endif
+    if !has_key(s:pets_status.pets, index)
+        call echo_err('incorrect pet name or something.')
+        return -1
+    endif
+    return index
+endfunction
+
+function! pets#start_pets_timer() abort
+    if has_key(s:pets_status, 'pets')
+        for i in keys(s:pets_status.pets)
+            if has_key(s:pets_status.pets[i], 'timerID')
+                " already started
+            else
+                let tid = timer_start(1000, function(expand('<SID>').'pets_cb', [i]), {'repeat':-1})
+                let s:pets_status.pets[i]['timerID'] = tid
+            endif
+        endfor
+    endif
+endfunction
+
+function! pets#stop_pets_timer() abort
+    if has_key(s:pets_status, 'pets')
+        for i in keys(s:pets_status.pets)
+            if has_key(s:pets_status.pets[i], 'timerID')
+                let tid =  s:pets_status.pets[i]['timerID']
+                call timer_stop(tid)
+                call remove(s:pets_status.pets[i], 'timerID')
+            endif
+        endfor
+    endif
+endfunction
 " }}}
 
 " main functions
@@ -256,6 +307,7 @@ function! pets#create_garden() abort
     let bg = s:get_bg(height, width)
     let lifetime_enable = s:set_config('lifetime_enable', 1)
     let birth_enable = s:set_config('birth_enable', 1)
+    let shownn = get(g:, 'pets_shownn', v:false)
 
     if pos[2][:2] == 'bot'
         let cur_h = pos[0]
@@ -310,6 +362,7 @@ function! pets#create_garden() abort
                 \ 'lifetime': lifetime_enable,
                 \ 'birth': birth_enable,
                 \ 'max_pets': s:max_pets,
+                \ 'shownn': shownn,
                 \ }
     return v:true
 endfunction
@@ -317,11 +370,11 @@ endfunction
 function! pets#put_pet(name, ...) abort
     if !has_key(s:pets_status, 'garden')
         call s:echo_err('Please create garden before.')
-        return
+        return -1
     endif
     if s:pets_status.garden.tab != tabpagenr()
         call s:echo_err('garden is not here.')
-        return
+        return -1
     endif
     if empty(a:000)
         let nick = s:idx
@@ -335,7 +388,7 @@ function! pets#put_pet(name, ...) abort
 
     let img = eval(printf('pets#%s#get_pet("%s")', s:pets_status.world, a:name))
     if empty(img)
-        return
+        return -1
     endif
 
     let wran = s:pets_status.garden.wrange
@@ -345,6 +398,13 @@ function! pets#put_pet(name, ...) abort
     let [bid, pid] = s:float_open(img, h, w, 'Normal', 49, 'botright', 2, 1, 0)
     let idx = s:idx
     let s:idx += 1
+    if s:pets_status.garden.shownn
+        let [nbid, npid] = s:float_open(printf("%s", nick), h-1, w, 'Normal', 49,
+                    \ 'botright', len(nick)+1, 1, 0)
+    else
+        let nbid = -1
+        let npid = -1
+    endif
 
     " Hey!
     call s:echo_msg(printf('%s(%s): %s', a:name, nick, nr2char(0x1f603)))
@@ -362,12 +422,15 @@ function! pets#put_pet(name, ...) abort
                 \ 'friends': {},
                 \ 'partner': -1,
                 \ 'children': 0,
+                \ 'nick_buffer': nbid,
+                \ 'nick_winID': npid,
                 \ }
     let s:pets_status.pets[idx] = pet_dict
     if len(s:pets_status.pets) > s:pets_status.garden.max_pets
-        let idx = min(keys(s:pets_status.pets))
-        call pets#leave_pet('leave', idx)
+        let old_idx = min(keys(s:pets_status.pets))
+        call pets#leave_pet('leave', old_idx)
     endif
+    return idx
 endfunction
 
 function! pets#leave_pet(type, ...) abort
@@ -377,26 +440,8 @@ function! pets#leave_pet(type, ...) abort
         return
     endif
 
-    if empty(a:000)
-        let index = min(keys(s:pets_status.pets))
-    elseif has_key(s:pets_status.pets, a:1)
-        let index = a:1
-    else
-        let l = strridx(a:1, '(')
-        let r = strridx(a:1, ')')
-        let nick = a:1[l+1:r-1]
-        let name = a:1[:l-1]
-        let index = -1
-        for idx in keys(s:pets_status.pets)
-            let opt = s:pets_status.pets[idx]
-            if opt.name == name && opt.nickname == nick
-                let index = idx
-                break
-            endif
-        endfor
-    endif
-    if !has_key(s:pets_status.pets, index)
-        call echo_err('incorrect pet name or something.')
+    let index = s:get_index(a:000)
+    if index == -1
         return
     endif
 
@@ -409,8 +454,16 @@ function! pets#leave_pet(type, ...) abort
     " close floating/popup window.
     if has('popupwin')
         call popup_close(pid)
+        if s:pets_status.garden.shownn
+            let npid = opt['nick_winID']
+            call popup_close(npid)
+        endif
     elseif has('nvim')
         call nvim_win_close(pid, v:false)
+        if s:pets_status.garden.shownn
+            let npid = opt['nick_winID']
+            call nvim_win_close(npid, v:false)
+        endif
     endif
     " say bye.
     if a:type == 'lifetime'
@@ -453,11 +506,13 @@ function! <SID>pets_cb(index, timer_id) abort
     let lifetime_enable = s:pets_status.garden.lifetime
     let birth_enable = s:pets_status.garden.birth
 
+    " lifetime
     if lifetime_enable && (localtime()-opt.join_time > s:lifetime)
         call pets#leave_pet('lifetime', a:index)
         return
     endif
 
+    " move
     if hrange[0] >= line
         let hnext = line+1
     elseif hrange[1] <= line
@@ -508,12 +563,21 @@ function! <SID>pets_cb(index, timer_id) abort
 
     if has('popupwin')
         call popup_setoptions(pid, {'col': wnext, 'line': hnext})
+        if s:pets_status.garden.shownn
+            let npid = opt['nick_winID']
+            call popup_setoptions(npid, {'col': wnext, 'line': hnext-1})
+        endif
     elseif has('nvim')
         call nvim_win_set_config(pid, {'relative': 'editor', 'col': wnext, 'row': hnext})
+        if s:pets_status.garden.shownn
+            let npid = opt['nick_winID']
+            call nvim_win_set_config(npid, {'relative': 'editor', 'col': wnext, 'row': hnext-1})
+        endif
     endif
 
     for idx in keys(pets)
         if idx == a:index
+            " myself
             continue
         endif
         if match(keys(opt.friends), idx) != -1
@@ -524,11 +588,13 @@ function! <SID>pets_cb(index, timer_id) abort
             endif
             let friend = s:pets_status.pets[idx]
             if opt.partner == -1
+                " first child
                 let is_birth = (opt.name == friend.name)
                             \ && (friend.partner == -1)
                             \ && (opt.children == 0)
                 let bias = 1/2.0
             else
+                " second child
                 let is_birth = (idx == opt.partner)
                             \ && (opt.children < 2)
                 let bias = 3/4.0
@@ -544,7 +610,12 @@ function! <SID>pets_cb(index, timer_id) abort
                 let opt.children += 1
                 let friend.children += 1
                 let new_name = a:index..idx..'Jr'..opt.children
-                call pets#put_pet(opt.name, new_name)
+                let child_idx = pets#put_pet(opt.name, new_name)
+                let child = s:pets_status.pets[child_idx]
+                let opt.friends[child_idx] = localtime()
+                let friend.friends[child_idx] = localtime()
+                let child.friends[a:index] = localtime()
+                let child.friends[idx] = localtime()
                 call s:echo_msg(printf('message: %s(%s) is born!', opt.name, new_name))
             endif
         else
