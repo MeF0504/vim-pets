@@ -370,11 +370,11 @@ endfunction
 function! pets#put_pet(name, ...) abort
     if !has_key(s:pets_status, 'garden')
         call s:echo_err('Please create garden before.')
-        return
+        return -1
     endif
     if s:pets_status.garden.tab != tabpagenr()
         call s:echo_err('garden is not here.')
-        return
+        return -1
     endif
     if empty(a:000)
         let nick = s:idx
@@ -388,7 +388,7 @@ function! pets#put_pet(name, ...) abort
 
     let img = eval(printf('pets#%s#get_pet("%s")', s:pets_status.world, a:name))
     if empty(img)
-        return
+        return -1
     endif
 
     let wran = s:pets_status.garden.wrange
@@ -427,9 +427,10 @@ function! pets#put_pet(name, ...) abort
                 \ }
     let s:pets_status.pets[idx] = pet_dict
     if len(s:pets_status.pets) > s:pets_status.garden.max_pets
-        let idx = min(keys(s:pets_status.pets))
-        call pets#leave_pet('leave', idx)
+        let old_idx = min(keys(s:pets_status.pets))
+        call pets#leave_pet('leave', old_idx)
     endif
+    return idx
 endfunction
 
 function! pets#leave_pet(type, ...) abort
@@ -609,7 +610,12 @@ function! <SID>pets_cb(index, timer_id) abort
                 let opt.children += 1
                 let friend.children += 1
                 let new_name = a:index..idx..'Jr'..opt.children
-                call pets#put_pet(opt.name, new_name)
+                let child_idx = pets#put_pet(opt.name, new_name)
+                let child = s:pets_status.pets[child_idx]
+                let opt.friends[child_idx] = localtime()
+                let friend.friends[child_idx] = localtime()
+                let child.friends[a:index] = localtime()
+                let child.friends[idx] = localtime()
                 call s:echo_msg(printf('message: %s(%s) is born!', opt.name, new_name))
             endif
         else
