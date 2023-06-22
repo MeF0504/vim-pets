@@ -10,11 +10,6 @@ function! s:float_cursor_open(img) abort
     let bid = -1
     let shift = 1+s:bias*s:count+localtime()%2
     if has('popupwin')
-        if localtime()%2
-            let line = 'cursor+1'
-        else
-            let line = 'cursor'
-        endif
         let config = {
                     \ 'line': 'cursor',
                     \ 'col': printf('cursor+%d', shift),
@@ -22,11 +17,6 @@ function! s:float_cursor_open(img) abort
                     \ }
         let pid = popup_create([a:img], config)
     elseif has('nvim')
-        if localtime()%2
-            let line = 1
-        else
-            let line = 0
-        endif
         let config = {
                     \ 'relative': 'cursor',
                     \ 'row': 0,
@@ -47,21 +37,11 @@ endfunction
 function! s:cursor_cb(pid, count, tid) abort
     let shift = 1+s:bias*a:count+localtime()%2
     if has('popupwin')
-        if localtime()%2
-            let line = 'cursor+1'
-        else
-            let line = 'cursor'
-        endif
         call popup_setoptions(a:pid, {
                     \ 'col': printf('cursor+%d', shift),
                     \ 'line': 'cursor',
                     \ })
     elseif has('nvim')
-        if localtime()%2
-            let line = 1
-        else
-            let line = 0
-        endif
         call nvim_win_set_config(a:pid, {
                     \ 'relative': 'cursor',
                     \ 'col': shift, 'row': 0})
