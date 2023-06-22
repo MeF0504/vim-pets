@@ -2,11 +2,18 @@
 
 Put small animals in your text editor.  
 (As you know, this plugin is strongly inspired by [vscode-pets](https://marketplace.visualstudio.com/items?itemName=tonybaloney.vscode-pets))
+
+**Pets**  
 <img src=images/vi-pets.gif width="70%">
+
+**PetsWithYou**  
+<img src=images/vi-petswithyou.gif width="70%">
 
 extension pack sample -> [vim-pets-ocean](https://github.com/MeF0504/vim-pets-ocean)
 
 ## Usage
+
+### Put pets in the Vim window
 
 Create garden with pets.
 ```
@@ -24,6 +31,25 @@ PetsThrowBall
 To Close the garden, please do
 ```
 PetsClose
+```
+
+### Put pets around the cursor
+
+```vim
+PetsWithYou animal_name
+```
+You can call this command repeatedly.
+e.g.)
+```vim
+PetsWithYou dog
+PetsWithYou dog
+PetsWithYou cat
+PetsWithYou rabbit
+```
+
+To clear pets,
+```vim
+PetsWithYouClear
 ```
 
 ## Requirements
