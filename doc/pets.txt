@@ -67,7 +67,7 @@ Show all messages and time stamps shown after when the garden is created.
 
 :PetsWithYou {pets-type}
 
-A pet show up around your cursor. You can call this command repeatly with
+A pet show up around your cursor. You can call this command repeatedly with
 the same and/or another {pets-type}, then pets are displayed in a row.
 
 :PetsWithYouClear
