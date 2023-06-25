@@ -6,8 +6,6 @@ let s:friend_time = 30 " sec
 let s:friend_sep = 3
 let s:lifetime = 10*60 " sec
 let s:ball_max_count = 12  " 12*400/1000 sec
-let g:pets_worlds = get(g:, 'pets_worlds', [])
-call add(g:pets_worlds, 'default')
 
 " check status {{{
 function! pets#status() abort
