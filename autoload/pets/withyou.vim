@@ -1,14 +1,19 @@
 scriptencoding utf-8
 
-let s:pids = []
-let s:tids = []
+let s:withu_status = []
 let s:count = 0
 const s:bias = 3
 
-function! s:float_cursor_open(img) abort
+function! pets#withyou#status() abort
+    for stat in s:withu_status
+        echo stat
+    endfor
+endfunction
+
+function! s:float_cursor_open(img, count) abort
     let pid = -1
     let bid = -1
-    let shift = 1+s:bias*s:count+localtime()%2
+    let shift = 1+s:bias*a:count+localtime()%2
     if has('popupwin')
         let config = {
                     \ 'line': 'cursor',
@@ -61,26 +66,55 @@ function! pets#withyou#main(name) abort
         return
     endif
     let img = eval(printf('pets#%s#get_pet("%s")', world, a:name))
-    let [bid, pid] = s:float_cursor_open(img)
+    let [bid, pid] = s:float_cursor_open(img, s:count)
     let tid = timer_start(100, function(expand('<SID>').'cursor_cb', [pid, s:count]), {'repeat':-1})
-    let s:pids = add(s:pids, pid)
+
+
+    if empty(s:withu_status)
+        augroup PetsWithYou
+            autocmd TabEnter * call s:pets_with_you_update()
+        augroup END
+    endif
+
+    let status = {}
+    let status.name = a:name
+    let status.img = img
+    let status.pid = pid
+    let status.tid = tid
+    let status.count = s:count
+    call add(s:withu_status, status)
     let s:count += 1
-    let s:tids = add(s:tids, tid)
+endfunction
+
+function! s:pets_with_you_update() abort
+    for stat in s:withu_status
+        if has('popupwin')
+            call popup_close(stat.pid)
+        elseif has('nvim')
+            call nvim_win_close(stat.pid, v:false)
+        endif
+        call timer_stop(stat.tid)
+
+        let [bid, pid] = s:float_cursor_open(stat.img, stat.count)
+        let stat.pid = pid
+        let tid = timer_start(100, function(expand('<SID>').'cursor_cb', [pid, stat.count]), {'repeat':-1})
+        let stat.tid = tid
+    endfor
 endfunction
 
 function! pets#withyou#close() abort
-    for tid in s:tids
-        cal timer_stop(tid)
-    endfor
-    for pid in s:pids
+    for stat in s:withu_status
         if has('popupwin')
-            call popup_close(pid)
+            call popup_close(stat.pid)
         elseif has('nvim')
-            call nvim_win_close(pid, v:false)
+            call nvim_win_close(stat.pid, v:false)
         endif
+        call timer_stop(stat.tid)
     endfor
+    let s:withu_status = []
     let s:count = 0
-    let s:pids = []
-    let s:tids = []
+    augroup PetsWithYou
+        autocmd!
+    augroup END
 endfunction
 
