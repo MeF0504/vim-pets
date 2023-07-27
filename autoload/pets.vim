@@ -272,7 +272,7 @@ function! pets#pets(...) abort
     endif
     for wld in g:pets_worlds
         let pet_names = eval(printf('pets#%s#get_pet_names()', wld))
-        if match(pet_names, name) != -1
+        if match(pet_names, printf('^%s$', name)) != -1
             let s:pets_status.world = wld
             break
         endif
