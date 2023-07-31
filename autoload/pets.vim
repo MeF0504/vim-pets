@@ -102,6 +102,11 @@ function! s:float_open(
     else
         let text = [a:text]
     endif
+    if has_key(s:pets_status, 'garden')
+        let tabnr = s:pets_status.garden.tab
+    else
+        let tabnr = 0  " current tab
+    endif
 
     if has('popupwin')
         if a:border
@@ -123,6 +128,7 @@ function! s:float_open(
                     \ 'maxheight': a:height,
                     \ 'pos': a:pos,
                     \ 'border': border,
+                    \ 'tabpage': tabnr,
                     \ }
         let pid = popup_create(text, popup_option)
 
@@ -370,7 +376,7 @@ function! pets#put_pet(name, ...) abort
         call s:echo_err('Please create garden before.')
         return -1
     endif
-    if s:pets_status.garden.tab != tabpagenr()
+    if has('nvim') && s:pets_status.garden.tab != tabpagenr()
         call s:echo_err('garden is not here.')
         return -1
     endif
@@ -609,6 +615,10 @@ function! <SID>pets_cb(index, timer_id) abort
                 let friend.children += 1
                 let new_name = a:index..idx..'Jr'..opt.children
                 let child_idx = pets#put_pet(opt.name, new_name)
+                if child_idx == -1
+                    " failed to put pet.
+                    return
+                endif
                 let child = s:pets_status.pets[child_idx]
                 let opt.friends[child_idx] = localtime()
                 let friend.friends[child_idx] = localtime()
