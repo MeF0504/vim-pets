@@ -230,14 +230,14 @@ function! s:get_index(args)
         let index = -1
         for idx in keys(s:pets_status.pets)
             let opt = s:pets_status.pets[idx]
-            if opt.name == name && opt.nickname == nick
+            if opt.name is# name && opt.nickname is# nick
                 let index = idx
                 break
             endif
         endfor
     endif
     if !has_key(s:pets_status.pets, index)
-        call echo_err('incorrect pet name or something.')
+        call s:echo_err('incorrect pet name or something.')
         return -1
     endif
     return index
@@ -394,6 +394,14 @@ function! pets#put_pet(name, ...) abort
     if empty(img)
         return -1
     endif
+
+    for idx in keys(s:pets_status.pets)
+        let pet = s:pets_status.pets[idx]
+        if pet.name is# a:name && pet.nickname is# nick
+            call s:echo_err(printf('%s named "%s" has already joined.', a:name, nick))
+            return -1
+        endif
+    endfor
 
     let wran = s:pets_status.garden.wrange
     let w = wran[0]+rand()%(wran[1]-wran[0])
