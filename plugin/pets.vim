@@ -27,7 +27,6 @@ endfunction
 
 command! -nargs=* -complete=customlist,s:pets_get_names Pets call pets#pets(<f-args>)
 command! -nargs=1 -complete=customlist,s:pets_get_names PetsWithYou call pets#withyou#main(<f-args>)
-command! PetsWithYouClear call pets#withyou#close()
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
