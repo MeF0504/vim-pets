@@ -379,7 +379,7 @@ endfunction
 
 function! s:clean_ball() abort
     let ball = pets#main#get_config('ball')
-    if !(ball is v:null)
+    if ball is v:null
         return
     endif
     let opt = ball

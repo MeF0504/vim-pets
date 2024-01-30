@@ -11,7 +11,7 @@ function! pets#get_all_pet_names() abort
 endfunction
 
 function! s:get_index(args)
-    let pets = meflib#main#get_config('pets')
+    let pets = pets#main#get_config('pets')
     if empty(a:args)
         let index = min(keys(pets))
     elseif has_key(pets, a:args[0])
@@ -69,7 +69,7 @@ function! pets#pets(...) abort
         if a:0 >= 2
             let nick = a:2
         else
-            let nick = pets#main#get_config('idx')
+            let nick = string(pets#main#get_config('idx'))
         endif
         call pets#put_pet(name, nick)
     endif
@@ -87,7 +87,7 @@ function! pets#put_pet(name, ...) abort
     endif
     if empty(a:000)
         " let nick = s:idx
-        let nick = pets#main#get_config('idx')
+        let nick = string(pets#main#get_config('idx'))
     else
         let nick = a:1
     endif

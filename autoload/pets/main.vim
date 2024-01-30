@@ -99,11 +99,11 @@ function! pets#main#rm_config(...) abort
         return
     endif
 
-    let tmp = s:pets_status
+    let var_str = 's:pets_status'
     for k in a:000[:-2]
-        let tmp = tmp[k]
+        let var_str .= printf('["%s"]', k)
     endfor
-    call remove(tmp, a:000[a:0-1])
+    execute printf("call remove(%s, %s)", var_str, a:000[-1])
 endfunction
 
 function! pets#main#float(
