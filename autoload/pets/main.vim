@@ -1,5 +1,106 @@
 scriptencoding utf-8
 
+let s:pets_status = {}
+let s:max_pets = 5
+let s:friend_time = 30 " sec
+let s:lifetime = 10*60 " sec
+let s:ball_max_count = 12  " 12*400/1000 sec
+
+" check status
+function! pets#main#status() abort
+    if has_key(s:pets_status, 'world')
+        echohl Special
+        echo 'world: '
+        echohl Title
+        echon s:pets_status.world
+        echohl None
+    endif
+    if has_key(s:pets_status, 'garden')
+        echohl Special
+        echo 'garden;'
+        for k in keys(s:pets_status.garden)
+            echohl Identifier
+            echo k
+            echohl None
+            echon ': '
+            echon s:pets_status.garden[k]
+        endfor
+    endif
+    if has_key(s:pets_status, 'pets')
+        echohl Special
+        echo 'pets;'
+        for i in keys(s:pets_status.pets)
+            echohl Special
+            echo i
+            for k in keys(s:pets_status.pets[i])
+                echohl Identifier
+                echo k
+                echohl None
+                echon ': '
+                echon s:pets_status.pets[i][k]
+            endfor
+        endfor
+        echohl None
+    endif
+    if has_key(s:pets_status, 'ball')
+        echohl Special
+        echo 'ball;'
+        for k in keys(s:pets_status.ball)
+            echohl Identifier
+            echo k
+            echohl None
+            echon ': '
+            echon s:pets_status.ball[k]
+        endfor
+    endif
+    if has_key(s:pets_status, 'messages')
+        echohl Special
+        echo 'messages;'
+        echohl None
+        for msg in s:pets_status.messages
+            echo msg
+        endfor
+    endif
+    echohl None
+endfunction
+
+function! pets#main#get_config(key) abort
+    if has_key(s:pets_status, a:key)
+        return s:pets_status[a:key]
+    else
+        return v:null
+    endif
+endfunction
+
+function! pets#main#set_config(val, ...) abort
+    if a:0 == 1
+        let s:pets_status[a:1] = a:val
+        return
+    endif
+    let tmp = s:pets_status
+    for k in a:000
+        let tmp = tmp[k]
+    endfor
+    let tmp = a:val
+endfunction
+
+function! pets#main#rm_config(...) abort
+    if a:0 == 1
+        call remove(s:pets_status, a:1)
+        return
+    endif
+
+    let tmp = s:pets_status
+    for k in a:000[:-2]
+        let tmp = tmp[k]
+    endfor
+    call remove(tmp, a:000[a:0-1])
+endfunction
+
+function! pets#main#get_defaults() abort
+    return [s:max_pets, s:friend_time, s:lifetime, s:ball_max_count]
+endfunction
+
 function! s:get_config(var_name, default) abort
     if exists(printf("g:pets#%s#%s", s:pets_status.world, a:var_name))
         return eval(printf("g:pets#%s#%s", s:pets_status.world, a:var_name))
@@ -9,14 +110,14 @@ function! s:get_config(var_name, default) abort
 endfunction
 
 function! s:bg_setting() abort
-    if exists(printf('*pets#%s#bg_setting', s:pets_status.world))
-        execute printf('call pets#%s#bg_setting()', s:pets_status.world)
+    if exists(printf('*pets#themes#%s#bg_setting', s:pets_status.world))
+        execute printf('call pets#themes#%s#bg_setting()', s:pets_status.world)
     endif
 endfunction
 
 function! s:get_bg(height, width) abort
     let world = s:pets_status.world
-    let bg = eval(printf('pets#%s#get_bg()', world))
+    let bg = eval(printf('pets#themes#%s#get_bg()', world))
     let bgh = len(bg)
     let bgw = len(bg[0])
     let res = []
@@ -134,6 +235,7 @@ function! pets#main#create_garden() abort
     endif
     let hran = [t+1, b-1]
 
+    let s:pets_status.idx = 0
     let s:pets_status.garden = {
                 \ 'buffer': bid,
                 \ 'winID': pid,
