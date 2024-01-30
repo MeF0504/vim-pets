@@ -4,89 +4,6 @@ let s:friend_sep = 3
 let [s:max_pets, s:friend_time, s:lifetime, s:ball_max_count] =
             \ pets#main#get_defaults()
 
-function! s:float_open(
-            \ text,
-            \ line, col,
-            \ highlight,
-            \ zindex,
-            \ pos, width, height,
-            \ border,
-            \ ) abort
-    let pid = 0
-    let bid = 0
-    if type(a:text) == type([])
-        let text = a:text
-    else
-        let text = [a:text]
-    endif
-    let garden = pets#main#get_config('garden')
-    if !garden is v:null
-        let tabnr = garden.tab
-    else
-        let tabnr = 0  " current tab
-    endif
-
-    if has('popupwin')
-        if a:border
-            let border = []
-        else
-            let border = ['', '', '', '']
-        endif
-        let popup_option = {
-                    \ 'line': a:line,
-                    \ 'col': a:col,
-                    \ 'drag': v:false,
-                    \ 'dragall': v:false,
-                    \ 'resize': v:false,
-                    \ 'close': 'none',
-                    \ 'highlight': a:highlight,
-                    \ 'scrollbar': v:false,
-                    \ 'zindex': a:zindex,
-                    \ 'maxwidth': a:width,
-                    \ 'maxheight': a:height,
-                    \ 'pos': a:pos,
-                    \ 'border': border,
-                    \ 'tabpage': tabnr,
-                    \ }
-        let pid = popup_create(text, popup_option)
-
-    elseif has('nvim')
-        if a:pos == 'topright'
-            let anc = 'NE'
-        elseif a:pos == 'topleft'
-            let anc = 'NW'
-        elseif a:pos == 'botright'
-            let anc = 'SE'
-        elseif a:pos == 'botleft'
-            let anc = 'SW'
-        endif
-        if a:border
-            let border = 'double'
-        else
-            let border = 'none'
-        endif
-        let popup_option = {
-                    \ 'relative': 'editor',
-                    \ 'row': a:line,
-                    \ 'col': a:col,
-                    \ 'style': 'minimal',
-                    \ 'width': a:width,
-                    \ 'height': a:height,
-                    \ 'anchor': anc,
-                    \ 'border': border,
-                    \ 'focusable': v:false,
-                    \ 'zindex': a:zindex,
-                    \ }
-
-        let bid = nvim_create_buf(v:false, v:true)
-        call nvim_buf_set_lines(bid, 0, -1, 0, text)
-        let pid = nvim_open_win(bid, v:false, popup_option)
-        call win_execute(pid, "setlocal winhighlight=Normal:".a:highlight)
-    endif
-
-    return [bid, pid]
-endfunction
-
 function! <SID>pets_cb(index, timer_id) abort
     let pets = pets#main#get_config('pets')
     let opt = pets[a:index]
@@ -113,7 +30,7 @@ function! <SID>pets_cb(index, timer_id) abort
     else
         let rand = rand()%100
         let ball = pets#main#get_config('ball')
-        if !ball is v:null
+        if !(ball is v:null)
             if ball.pos[0] == line
                 let hnext = line
             elseif ball.pos[0] > line
@@ -139,7 +56,7 @@ function! <SID>pets_cb(index, timer_id) abort
     else
         let rand = rand()%100
         let ball = pets#main#get_config('ball')
-        if !ball is v:null
+        if !(ball is v:null)
             if ball.pos[1] == col
                 let wnext = col
             elseif ball.pos[1] > col
@@ -269,7 +186,7 @@ function! pets#emoji#put_pets(name, nick)
     let world = pets#main#get_config('world')
     let pets = pets#main#get_config('pets')
     let garden = pets#main#get_config('garden')
-    let img = eval(printf('pets#%s#get_pet("%s")', world, a:name))
+    let img = eval(printf('pets#themes#%s#get_pet("%s")', world, a:name))
     if empty(img)
         return -1
     endif
@@ -286,13 +203,13 @@ function! pets#emoji#put_pets(name, nick)
     let w = wran[0]+rand()%(wran[1]-wran[0])
     let hran = garden.hrange
     let h = hran[0]+rand()%(hran[1]-hran[0])
-    let [bid, pid] = s:float_open(img, h, w, 'Normal', 49, 'botright', 2, 1, 0)
+    let [bid, pid] = pets#main#float(img, h, w, 'Normal', 49, 'botright', 2, 1, 0)
     let idx = pets#main#get_config('idx')
     " let s:idx += 1
     call pets#main#set_config(idx+1, 'idx')
     if garden.shownn
-        let [nbid, npid] = s:float_open(printf("%s", a:nick), h-1, w, 'Normal', 49,
-                    \ 'botright', len(a:nick)+1, 1, 0)
+        let [nbid, npid] = pets#main#float(printf("%s", a:nick), h-1, w,
+                    \ 'Normal', 49, 'botright', len(a:nick)+1, 1, 0)
     else
         let nbid = -1
         let npid = -1
@@ -317,8 +234,7 @@ function! pets#emoji#put_pets(name, nick)
                 \ 'nick_buffer': nbid,
                 \ 'nick_winID': npid,
                 \ }
-    let pets[idx] = pet_dict
-    call pets#main#set_config(pets, 'pets')
+    call pets#main#set_config(pet_dict, 'pets', idx)
     if len(pets) > garden.max_pets
         let old_idx = min(keys(pets))
         call pets#emoji#leave_pet('leave', old_idx)
@@ -463,7 +379,7 @@ endfunction
 
 function! s:clean_ball() abort
     let ball = pets#main#get_config('ball')
-    if !ball is v:null
+    if !(ball is v:null)
         return
     endif
     let opt = ball
@@ -498,7 +414,7 @@ function! pets#emoji#throw_ball() abort
         let w = wran[1]-1
         let h = hran[1]+(hran[0]-hran[1])/3
     endif
-    let [bid, pid] = s:float_open(img, h, w, 'Normal', 49, 'botright', 2, 1, 0)
+    let [bid, pid] = pets#main#float(img, h, w, 'Normal', 49, 'botright', 2, 1, 0)
     " 時間間隔は1秒の約数じゃないほうが良さそう
     let tid = timer_start(400, function(expand('<SID>').'ball_cb', [start_point]), {'repeat':-1})
 

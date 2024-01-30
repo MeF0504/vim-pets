@@ -77,11 +77,20 @@ function! pets#main#set_config(val, ...) abort
         let s:pets_status[a:1] = a:val
         return
     endif
-    let tmp = s:pets_status
+    let var_str = 's:pets_status'
     for k in a:000
-        let tmp = tmp[k]
+        let var = eval(var_str)
+        if (type(var) == type({})) && !has_key(var, k)
+            let var[k] = {}
+        endif
+        let var_str .= printf('["%s"]', k)
     endfor
-    let tmp = a:val
+    if type(a:val) == type("")
+        let val = printf('"%s"')
+    else
+        let val = string(a:val)
+    endif
+    execute printf("let %s = %s", var_str, val)
 endfunction
 
 function! pets#main#rm_config(...) abort
@@ -95,6 +104,85 @@ function! pets#main#rm_config(...) abort
         let tmp = tmp[k]
     endfor
     call remove(tmp, a:000[a:0-1])
+endfunction
+
+function! pets#main#float(
+            \ text, line, col,
+            \ highlight, zindex,
+            \ pos, width, height, border,
+            \ ) abort
+    let pid = 0
+    let bid = 0
+    if type(a:text) == type([])
+        let text = a:text
+    else
+        let text = [a:text]
+    endif
+    if has_key(s:pets_status, 'garden')
+        let tabnr = s:pets_status.garden.tab
+    else
+        let tabnr = 0  " current tab
+    endif
+
+    if has('popupwin')
+        if a:border
+            let border = []
+        else
+            let border = ['', '', '', '']
+        endif
+        let popup_option = {
+                    \ 'line': a:line,
+                    \ 'col': a:col,
+                    \ 'drag': v:false,
+                    \ 'dragall': v:false,
+                    \ 'resize': v:false,
+                    \ 'close': 'none',
+                    \ 'highlight': a:highlight,
+                    \ 'scrollbar': v:false,
+                    \ 'zindex': a:zindex,
+                    \ 'maxwidth': a:width,
+                    \ 'maxheight': a:height,
+                    \ 'pos': a:pos,
+                    \ 'border': border,
+                    \ 'tabpage': tabnr,
+                    \ }
+        let pid = popup_create(text, popup_option)
+
+    elseif has('nvim')
+        if a:pos == 'topright'
+            let anc = 'NE'
+        elseif a:pos == 'topleft'
+            let anc = 'NW'
+        elseif a:pos == 'botright'
+            let anc = 'SE'
+        elseif a:pos == 'botleft'
+            let anc = 'SW'
+        endif
+        if a:border
+            let border = 'double'
+        else
+            let border = 'none'
+        endif
+        let popup_option = {
+                    \ 'relative': 'editor',
+                    \ 'row': a:line,
+                    \ 'col': a:col,
+                    \ 'style': 'minimal',
+                    \ 'width': a:width,
+                    \ 'height': a:height,
+                    \ 'anchor': anc,
+                    \ 'border': border,
+                    \ 'focusable': v:false,
+                    \ 'zindex': a:zindex,
+                    \ }
+
+        let bid = nvim_create_buf(v:false, v:true)
+        call nvim_buf_set_lines(bid, 0, -1, 0, text)
+        let pid = nvim_open_win(bid, v:false, popup_option)
+        call win_execute(pid, "setlocal winhighlight=Normal:".a:highlight)
+    endif
+
+    return [bid, pid]
 endfunction
 
 function! pets#main#get_defaults() abort
@@ -207,7 +295,7 @@ function! pets#main#create_garden() abort
         return v:false
     endif
 
-     let [bid, pid] = s:float_open(bg, pos[0], pos[1], 'Normal', 48,
+     let [bid, pid] = pets#main#float(bg, pos[0], pos[1], 'Normal', 48,
                 \ pos[2], width, height, 1)
      call win_execute(pid, printf('call %sbg_setting()', expand('<SID>')))
 

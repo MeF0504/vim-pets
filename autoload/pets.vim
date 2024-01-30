@@ -4,7 +4,7 @@ function! pets#get_all_pet_names() abort
     let res = []
     for wld in g:pets_worlds
         try
-            let res = eval(printf('res+pets#%s#get_pet_names()', wld))
+            let res = eval(printf('res+pets#themes#%s#get_pet_names()', wld))
         endtry
     endfor
     return res
@@ -116,7 +116,7 @@ function! pets#close()
     " clear pets
     let pets = pets#main#get_config('pets')
     " if has_key(s:pets_status, 'pets')
-    if !pets is v:null
+    if !(pets is v:null)
         for idx in keys(pets)
             call pets#leave_pet('close', idx)
         endfor
@@ -127,7 +127,7 @@ function! pets#close()
     " clear garden
     let garden = pets#main#get_config('garden')
     " if has_key(s:pets_status, 'garden')
-    if !garden is v:null
+    if !(garden is v:null)
         let pid = garden.winID
         if has('popupwin')
             call popup_close(pid)
@@ -140,19 +140,19 @@ function! pets#close()
 
     " clear messages
     " if has_key(s:pets_status, 'messages')
-    if !pets#main#get_config('messages') is v:null
+    if !(pets#main#get_config('messages') is v:null)
         " call remove(s:pets_status, 'messages')
         call pets#main#rm_config('messages')
     endif
 
     " clear index
-    if !pets#main#get_config('idx') is v:null
+    if !(pets#main#get_config('idx') is v:null)
         call pets#main#rm_config('idx')
     endif
 
     " clear world's name
     " if has_key(s:pets_status, 'world')
-    if !pets#main#get_config('world') is v:null
+    if !(pets#main#get_config('world') is v:null)
         " call remove(s:pets_status, 'world')
         call pets#main#rm_config('world')
     endif
@@ -175,13 +175,13 @@ function! pets#throw_ball() abort
         return
     endif
 
-    call call(printf('pets#%s#throw_ball', pets#main#get_config('type')))
+    call call(printf('pets#%s#throw_ball', pets#main#get_config('type')), [])
 endfunction
 
 function! pets#message_log() abort
     let message = pets#main#get_config('message')
     " if has_key(s:pets_status, 'messages')
-    if !message is v:null
+    if !(message is v:null)
         for msg in messages
             echo msg
         endfor
@@ -190,7 +190,7 @@ endfunction
 
 " commands
 function! s:pets_get_names(arglead, cmdline, cursorpos) abort
-    let names = eval(printf('pets#%s#get_pet_names()',
+    let names = eval(printf('pets#themes#%s#get_pet_names()',
                 \ pets#main#get_config('world')))
     return filter(names, '!stridx(v:val, a:arglead)')
 endfunction
