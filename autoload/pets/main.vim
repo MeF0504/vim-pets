@@ -83,10 +83,15 @@ function! pets#main#set_config(val, ...) abort
         if (type(var) == type({})) && !has_key(var, k)
             let var[k] = {}
         endif
-        let var_str .= printf('["%s"]', k)
+        if type(k) == type("")
+            let key = k
+        else
+            let key = string(k)
+        endif
+        let var_str .= printf('["%s"]', key)
     endfor
     if type(a:val) == type("")
-        let val = printf('"%s"')
+        let val = printf('"%s"', a:val)
     else
         let val = string(a:val)
     endif

@@ -179,9 +179,9 @@ function! pets#throw_ball() abort
 endfunction
 
 function! pets#message_log() abort
-    let message = pets#main#get_config('message')
+    let messages = pets#main#get_config('messages')
     " if has_key(s:pets_status, 'messages')
-    if !(message is v:null)
+    if !(messages is v:null)
         for msg in messages
             echo msg
         endfor
