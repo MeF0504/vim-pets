@@ -15,6 +15,13 @@ function! pets#main#status() abort
         echon s:pets_status.world
         echohl None
     endif
+    if has_key(s:pets_status, 'type')
+        echohl Special
+        echo 'type: '
+        echohl Title
+        echon s:pets_status.type
+        echohl None
+    endif
     if has_key(s:pets_status, 'garden')
         echohl Special
         echo 'garden;'

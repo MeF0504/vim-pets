@@ -7,6 +7,8 @@ let s:pets = {
             \ 't-rex': nr2char(0x1f996),
             \ }
 " 🐕, 🐈, 🐇, 🦖
+let pets#themes#default#type = 'emoji'
+
 function! pets#themes#default#get_pet(name) abort
     if !has_key(s:pets, a:name)
         echohl ErrorMsg

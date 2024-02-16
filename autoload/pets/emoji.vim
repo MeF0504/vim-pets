@@ -46,7 +46,6 @@ function! <SID>pets_cb(index, timer_id) abort
             let hnext = line-1
         endif
     endif
-    " let s:pets_status.pets[a:index]['pos'][0] = hnext
     call pets#main#set_config(hnext, 'pets', a:index, 'pos', 0)
 
     if wrange[0] >= col

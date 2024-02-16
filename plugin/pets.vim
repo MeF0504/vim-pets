@@ -19,6 +19,7 @@ set cpo&vim
 
 let g:pets_worlds = get(g:, 'pets_worlds', [])
 call add(g:pets_worlds, 'default')
+call add(g:pets_worlds, 'test_img')
 
 function! s:pets_get_names(arglead, cmdline, cursorpos) abort
     let names = pets#get_all_pet_names()
