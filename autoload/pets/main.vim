@@ -202,8 +202,8 @@ function! pets#main#get_defaults() abort
 endfunction
 
 function! s:get_config(var_name, default) abort
-    if exists(printf("g:pets#%s#%s", s:pets_status.world, a:var_name))
-        return eval(printf("g:pets#%s#%s", s:pets_status.world, a:var_name))
+    if exists(printf("g:pets#themes#%s#%s", s:pets_status.world, a:var_name))
+        return eval(printf("g:pets#themes#%s#%s", s:pets_status.world, a:var_name))
     else
         return get(g:, printf("pets_%s", a:var_name), a:default)
     endif

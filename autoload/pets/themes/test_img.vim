@@ -1,6 +1,5 @@
 scriptencoding utf-8
 
-            " \ 'mef0504': ['/Users/fujino/Pictures/icons/dir_icon/zaseki_business_desk1.png'],
 let s:pets = {
             \ 'mef0504': [
             \ expand('<sfile>:h')..'/test_img/mef0504_0.jpg',

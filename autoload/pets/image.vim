@@ -27,8 +27,8 @@ function! s:redraw_cb(index, timer_id) abort
     let opt = pets[a:index]
     let line = opt['pos'][0]
     let col = opt['pos'][1]
-    let count = opt['count']+1
-    call pets#main#set_config(count, 'pets', a:index, 'count')
+    let count = opt['count']
+    call pets#main#set_config(count+1, 'pets', a:index, 'count')
     let img_pathes = opt['image_pathes']
     let L = len(img_pathes)
     call pets#image#display_sixel(img_pathes[count%L], line, col)
@@ -86,7 +86,6 @@ function! pets#image#put_pets(name, nick) abort
                 \ 'nickname': a:nick,
                 \ 'image_pathes': img_pathes,
                 \ 'pos': [h, w],
-                \ 'join_time': localtime(),
                 \ 'nick_buffer': nbid,
                 \ 'nick_winID': npid,
                 \ 'count': 0,
