@@ -92,7 +92,7 @@ Plug 'MeF0504/vim-pets'
 * [sample](images/vi-pets_image.gif)
 
 NOTE: This is a very challenging function.
-This is still limited not stable.
+This is still limited and not stable.
 ### Requirements
 * [libsixel](https://github.com/libsixel/libsixel) supported terminal emulator.
 * img2sixel command
