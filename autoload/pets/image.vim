@@ -26,11 +26,11 @@ function! s:redraw_cb(index, timer_id) abort
     let opt = pets[a:index]
     let line = opt['pos'][0]
     let col = opt['pos'][1]
-    let count = opt['count']
-    call pets#main#set_config(count+1, 'pets', a:index, 'count')
+    let l:count = opt['count']
+    call pets#main#set_config(l:count+1, 'pets', a:index, 'count')
     let img_pathes = opt['image_pathes']
     let L = len(img_pathes)
-    call pets#image#display_sixel(img_pathes[count%L], line, col)
+    call pets#image#display_sixel(img_pathes[l:count%L], line, col)
 endfunction
 
 function! pets#image#put_pets(name, nick) abort
