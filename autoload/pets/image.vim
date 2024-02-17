@@ -17,7 +17,6 @@ function pets#image#display_sixel(path, lnum, cnum) abort
 
   " restore cursor pos
   call s:echoraw("\x1b[u")
-  normal! :
 endfunction
 
 " call pets#image#display_sixel('autoload/pets/themes/test_img/mef0504.jpg', 5, 10)
@@ -35,6 +34,10 @@ function! s:redraw_cb(index, timer_id) abort
 endfunction
 
 function! pets#image#put_pets(name, nick) abort
+    if !executable('img2sixel')
+        call pets#main#echo_err('To show images, img2sixel command is required.')
+        return -1
+    endif
     if pets#main#get_config('pets') is v:null
         call pets#main#set_config({}, 'pets')
     endif
