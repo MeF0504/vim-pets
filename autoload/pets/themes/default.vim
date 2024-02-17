@@ -7,7 +7,9 @@ let s:pets = {
             \ 't-rex': nr2char(0x1f996),
             \ }
 " 🐕, 🐈, 🐇, 🦖
-function! pets#default#get_pet(name) abort
+let pets#themes#default#type = 'emoji'
+
+function! pets#themes#default#get_pet(name) abort
     if !has_key(s:pets, a:name)
         echohl ErrorMsg
         echo printf('"%s" is not in this world.', a:name)
@@ -18,11 +20,11 @@ function! pets#default#get_pet(name) abort
     return s:pets[a:name]
 endfunction
 
-function! pets#default#get_pet_names() abort
+function! pets#themes#default#get_pet_names() abort
     return keys(s:pets)
 endfunction
 
-function! pets#default#get_bg() abort
+function! pets#themes#default#get_bg() abort
     let bg = [
                 \ "v ",
                 \ " v",
@@ -30,7 +32,7 @@ function! pets#default#get_bg() abort
     return bg
 endfunction
 
-function! pets#default#bg_setting() abort
+function! pets#themes#default#bg_setting() abort
     highlight PetsGardenBG1 ctermfg=28 ctermbg=None guifg=#309030 guibg=NONE
     highlight PetsGardenBG2 ctermfg=22 ctermbg=None guifg=#285528 guibg=NONE
     for l in range(1, line('$'))

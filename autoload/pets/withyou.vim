@@ -56,7 +56,7 @@ endfunction
 function! pets#withyou#main(name) abort
     let world = ""
     for wld in g:pets_worlds
-        let pet_names = eval(printf('pets#%s#get_pet_names()', wld))
+        let pet_names = eval(printf('pets#themes#%s#get_pet_names()', wld))
         if match(pet_names, a:name) != -1
             let world = wld
             break
@@ -65,7 +65,7 @@ function! pets#withyou#main(name) abort
     if empty(world)
         return
     endif
-    let img = eval(printf('pets#%s#get_pet("%s")', world, a:name))
+    let img = eval(printf('pets#themes#%s#get_pet("%s")', world, a:name))
     let [bid, pid] = s:float_cursor_open(img, s:count)
     let tid = timer_start(100, function(expand('<SID>').'cursor_cb', [pid, s:count]), {'repeat':-1})
 
@@ -118,3 +118,4 @@ function! pets#withyou#close() abort
     augroup END
 endfunction
 
+command! PetsWithYouClear call pets#withyou#close()

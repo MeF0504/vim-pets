@@ -19,6 +19,7 @@ set cpo&vim
 
 let g:pets_worlds = get(g:, 'pets_worlds', [])
 call add(g:pets_worlds, 'default')
+call add(g:pets_worlds, 'test_img')
 
 function! s:pets_get_names(arglead, cmdline, cursorpos) abort
     let names = pets#get_all_pet_names()
@@ -27,7 +28,6 @@ endfunction
 
 command! -nargs=* -complete=customlist,s:pets_get_names Pets call pets#pets(<f-args>)
 command! -nargs=1 -complete=customlist,s:pets_get_names PetsWithYou call pets#withyou#main(<f-args>)
-command! PetsWithYouClear call pets#withyou#close()
 
 let &cpo = s:save_cpo
 unlet s:save_cpo

@@ -87,6 +87,17 @@ Plug 'MeF0504/vim-pets'
     The position argument is converted to fit the `nvim_open_win` function.
     - default: [&lines-&cmdheight-1, &columns-1, 'botright']
 
+## Future Contents
+* Plan to support showing image files
+* [sample](images/vi-pets_image.gif)
+
+NOTE: This is a very challenging function.
+This is still limited and not stable.
+### Requirements
+* [libsixel](https://github.com/libsixel/libsixel) supported terminal emulator.
+* img2sixel command
+
+
 ## License
 [MIT](https://github.com/MeF0504/vim-pets/blob/main/LICENSE)
 

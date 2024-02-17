@@ -1,226 +1,20 @@
 
-let s:pets_status = {}
-let s:max_pets = 5
-let s:idx = 0
-let s:friend_time = 30 " sec
-let s:friend_sep = 3
-let s:lifetime = 10*60 " sec
-let s:ball_max_count = 12  " 12*400/1000 sec
-
-" check status {{{
-function! pets#status() abort
-    if has_key(s:pets_status, 'world')
-        echohl Special
-        echo 'world: '
-        echohl Title
-        echon s:pets_status.world
-        echohl None
-    endif
-    if has_key(s:pets_status, 'garden')
-        echohl Special
-        echo 'garden;'
-        for k in keys(s:pets_status.garden)
-            echohl Identifier
-            echo k
-            echohl None
-            echon ': '
-            echon s:pets_status.garden[k]
-        endfor
-    endif
-    if has_key(s:pets_status, 'pets')
-        echohl Special
-        echo 'pets;'
-        for i in keys(s:pets_status.pets)
-            echohl Special
-            echo i
-            for k in keys(s:pets_status.pets[i])
-                echohl Identifier
-                echo k
-                echohl None
-                echon ': '
-                echon s:pets_status.pets[i][k]
-            endfor
-        endfor
-        echohl None
-    endif
-    if has_key(s:pets_status, 'ball')
-        echohl Special
-        echo 'ball;'
-        for k in keys(s:pets_status.ball)
-            echohl Identifier
-            echo k
-            echohl None
-            echon ': '
-            echon s:pets_status.ball[k]
-        endfor
-    endif
-    if has_key(s:pets_status, 'messages')
-        echohl Special
-        echo 'messages;'
-        echohl None
-        for msg in s:pets_status.messages
-            echo msg
-        endfor
-    endif
-    echohl None
-endfunction
-" }}}
-
-function! s:set_config(var_name, default) abort
-    if exists(printf("g:pets#%s#%s", s:pets_status.world, a:var_name))
-        return eval(printf("g:pets#%s#%s", s:pets_status.world, a:var_name))
-    else
-        return get(g:, printf("pets_%s", a:var_name), a:default)
-    endif
-endfunction
-
-" setting functions {{{
-" function! s:set_pet_col() abort
-"     " highlight PetsBG ctermbg=0 ctermfg=fg guibg=Black guifg=fg
-" endfunction
-
-function! s:bg_setting() abort
-    if exists(printf('*pets#%s#bg_setting', s:pets_status.world))
-        execute printf('call pets#%s#bg_setting()', s:pets_status.world)
-    endif
-endfunction
-" }}}
-
 " background functions {{{
-function! s:float_open(
-            \ text,
-            \ line, col,
-            \ highlight,
-            \ zindex,
-            \ pos, width, height,
-            \ border,
-            \ ) abort
-    let pid = 0
-    let bid = 0
-    if type(a:text) == type([])
-        let text = a:text
-    else
-        let text = [a:text]
-    endif
-    if has_key(s:pets_status, 'garden')
-        let tabnr = s:pets_status.garden.tab
-    else
-        let tabnr = 0  " current tab
-    endif
-
-    if has('popupwin')
-        if a:border
-            let border = []
-        else
-            let border = ['', '', '', '']
-        endif
-        let popup_option = {
-                    \ 'line': a:line,
-                    \ 'col': a:col,
-                    \ 'drag': v:false,
-                    \ 'dragall': v:false,
-                    \ 'resize': v:false,
-                    \ 'close': 'none',
-                    \ 'highlight': a:highlight,
-                    \ 'scrollbar': v:false,
-                    \ 'zindex': a:zindex,
-                    \ 'maxwidth': a:width,
-                    \ 'maxheight': a:height,
-                    \ 'pos': a:pos,
-                    \ 'border': border,
-                    \ 'tabpage': tabnr,
-                    \ }
-        let pid = popup_create(text, popup_option)
-
-    elseif has('nvim')
-        if a:pos == 'topright'
-            let anc = 'NE'
-        elseif a:pos == 'topleft'
-            let anc = 'NW'
-        elseif a:pos == 'botright'
-            let anc = 'SE'
-        elseif a:pos == 'botleft'
-            let anc = 'SW'
-        endif
-        if a:border
-            let border = 'double'
-        else
-            let border = 'none'
-        endif
-        let popup_option = {
-                    \ 'relative': 'editor',
-                    \ 'row': a:line,
-                    \ 'col': a:col,
-                    \ 'style': 'minimal',
-                    \ 'width': a:width,
-                    \ 'height': a:height,
-                    \ 'anchor': anc,
-                    \ 'border': border,
-                    \ 'focusable': v:false,
-                    \ 'zindex': a:zindex,
-                    \ }
-
-        let bid = nvim_create_buf(v:false, v:true)
-        call nvim_buf_set_lines(bid, 0, -1, 0, text)
-        let pid = nvim_open_win(bid, v:false, popup_option)
-        call win_execute(pid, "setlocal winhighlight=Normal:".a:highlight)
-    endif
-
-    return [bid, pid]
-endfunction
-
-function! s:echo_err(str) abort
-    echohl ErrorMsg
-    echo a:str
-    echohl None
-endfunction
-
 function! pets#get_all_pet_names() abort
     let res = []
     for wld in g:pets_worlds
         try
-            let res = eval(printf('res+pets#%s#get_pet_names()', wld))
+            let res = eval(printf('res+pets#themes#%s#get_pet_names()', wld))
         endtry
     endfor
     return res
 endfunction
 
-function! s:get_bg(height, width) abort
-    let world = s:pets_status.world
-    let bg = eval(printf('pets#%s#get_bg()', world))
-    let bgh = len(bg)
-    let bgw = len(bg[0])
-    let res = []
-    for i in range(a:height)
-        call add(res, '')
-    endfor
-    for i in range(a:width/bgw)
-        for j in range(a:height)
-            let res[j] .= bg[j%bgh]
-        endfor
-    endfor
-
-    for i in range(a:width%bgw)
-        for j in range(a:height)
-            let res[j] .= bg[j%bgh][i]
-        endfor
-    endfor
-    return res
-endfunction
-
-function! s:echo_msg(msg) abort
-    if !has_key(s:pets_status, 'messages')
-        let s:pets_status.messages = []
-    endif
-    let time = strftime('[%b-%d %H:%M:%S]  ')
-    call add(s:pets_status.messages, time..a:msg)
-    echo a:msg
-endfunction
-
 function! s:get_index(args)
+    let pets = pets#main#get_config('pets')
     if empty(a:args)
-        let index = min(keys(s:pets_status.pets))
-    elseif has_key(s:pets_status.pets, a:args[0])
+        let index = min(keys(pets))
+    elseif has_key(pets, a:args[0])
         let index = a:args[0]
     else
         let l = strridx(a:args[0], '(')
@@ -228,44 +22,19 @@ function! s:get_index(args)
         let nick = a:args[0][l+1:r-1]
         let name = a:args[0][:l-1]
         let index = -1
-        for idx in keys(s:pets_status.pets)
-            let opt = s:pets_status.pets[idx]
+        for idx in keys(pets)
+            let opt = pets[idx]
             if opt.name is# name && opt.nickname is# nick
                 let index = idx
                 break
             endif
         endfor
     endif
-    if !has_key(s:pets_status.pets, index)
-        call s:echo_err('incorrect pet name or something.')
+    if !has_key(pets, index)
+        call pets#main#echo_err('incorrect pet name or something.')
         return -1
     endif
     return index
-endfunction
-
-function! pets#start_pets_timer() abort
-    if has_key(s:pets_status, 'pets')
-        for i in keys(s:pets_status.pets)
-            if has_key(s:pets_status.pets[i], 'timerID')
-                " already started
-            else
-                let tid = timer_start(1000, function(expand('<SID>').'pets_cb', [i]), {'repeat':-1})
-                let s:pets_status.pets[i]['timerID'] = tid
-            endif
-        endfor
-    endif
-endfunction
-
-function! pets#stop_pets_timer() abort
-    if has_key(s:pets_status, 'pets')
-        for i in keys(s:pets_status.pets)
-            if has_key(s:pets_status.pets[i], 'timerID')
-                let tid =  s:pets_status.pets[i]['timerID']
-                call timer_stop(tid)
-                call remove(s:pets_status.pets[i], 'timerID')
-            endif
-        endfor
-    endif
 endfunction
 " }}}
 
@@ -277,559 +46,149 @@ function! pets#pets(...) abort
         let name = get(g:, 'pets_default_pet', 'dog')
     endif
     for wld in g:pets_worlds
-        let pet_names = eval(printf('pets#%s#get_pet_names()', wld))
+        let func_name = printf('pets#themes#%s#get_pet_names()', wld)
+        try
+            let pet_names = eval(func_name)
+        catch
+            let pet_names = []
+        endtry
         if match(pet_names, printf('^%s$', name)) != -1
-            let s:pets_status.world = wld
+            " let s:pets_status.world = wld
+            call pets#main#set_config(wld, 'world')
+            let type_var = printf('g:pets#themes#%s#type', wld)
+            if exists(type_var)
+                let type_name = eval(type_var)
+            else
+                let type_name = 'emoji'
+            endif
+            call pets#main#set_config(type_name, 'type')
             break
         endif
     endfor
-    if !has_key(s:pets_status, 'world')
-        call s:echo_err("incorrect pets's name.")
+    " if !has_key(s:pets_status, 'world')
+    if pets#main#get_config('world') is v:null
+        call pets#main#echo_err("incorrect pets's name.")
         return
     endif
-    let res = pets#create_garden()
+    let res = pets#main#create_garden()
     if res
         if a:0 >= 2
             let nick = a:2
         else
-            let nick = s:idx
+            let nick = string(pets#main#get_config('idx'))
         endif
         call pets#put_pet(name, nick)
     endif
 endfunction
 
-function! pets#create_garden() abort
-    if has_key(s:pets_status, 'garden')
-        call s:echo_err('garden is already created.')
-        return v:false
-    endif
-
-    " set configure
-    let width = s:set_config('garden_width', &columns/2)
-    let height = s:set_config('garden_height', &lines/3)
-    let pos = s:set_config('garden_pos', [&lines-&cmdheight-1, &columns-1, 'botright'])
-    let bg = s:get_bg(height, width)
-    let lifetime_enable = s:set_config('lifetime_enable', 1)
-    let birth_enable = s:set_config('birth_enable', 1)
-    let shownn = get(g:, 'pets_shownn', v:false)
-
-    if pos[2][:2] == 'bot'
-        let cur_h = pos[0]
-    elseif pos[2][:2] == 'top'
-        let cur_h = &lines-pos[0]
-    else
-        call s:echo_err(printf('incorrect pos setting: %s.', pos[2]))
-        return v:false
-    endif
-    if height > cur_h
-        call s:echo_err(printf('garden requires height %d (current: %d)', height, cur_h))
-        return v:false
-    endif
-
-     let [bid, pid] = s:float_open(bg, pos[0], pos[1], 'Normal', 48,
-                \ pos[2], width, height, 1)
-     call win_execute(pid, printf('call %sbg_setting()', expand('<SID>')))
-
-    if pos[2][-4:] == 'left'
-        let l = pos[1]
-        let r = l+width
-    elseif pos[2][-5:] == 'right'
-        let r = pos[1]
-        let l = r-width
-    else
-        call s:echo_err(printf('incorrect pos setting: %s.', pos[2]))
-        return
-    endif
-    let wran = [l+1, r-1]
-
-    if pos[2][:2] == 'top'
-        let t = pos[0]
-        let b = t+height
-    elseif pos[2][:2] == 'bot'
-        let b = pos[0]
-        let t = b-height
-    else
-        call s:echo_err(printf('incorrect pos setting: %s.', pos[2]))
-        return
-    endif
-    let hran = [t+1, b-1]
-
-    let s:pets_status.garden = {
-                \ 'buffer': bid,
-                \ 'winID': pid,
-                \ 'width': width,
-                \ 'height': height,
-                \ 'pos': pos,
-                \ 'wrange': wran,
-                \ 'hrange': hran,
-                \ 'tab': tabpagenr(),
-                \ 'lifetime': lifetime_enable,
-                \ 'birth': birth_enable,
-                \ 'max_pets': s:max_pets,
-                \ 'shownn': shownn,
-                \ }
-    return v:true
-endfunction
-
 function! pets#put_pet(name, ...) abort
-    if !has_key(s:pets_status, 'garden')
-        call s:echo_err('Please create garden before.')
+    let garden = pets#main#get_config('garden')
+    if garden is v:null
+        call pets#main#echo_err('Please create garden before.')
         return -1
     endif
-    if has('nvim') && s:pets_status.garden.tab != tabpagenr()
-        call s:echo_err('garden is not here.')
+    if has('nvim') && garden.tab != tabpagenr()
+        call pets#main#echo_err('garden is not here.')
         return -1
     endif
     if empty(a:000)
-        let nick = s:idx
+        " let nick = s:idx
+        let nick = string(pets#main#get_config('idx'))
     else
         let nick = a:1
     endif
 
-    if !has_key(s:pets_status, 'pets')
-        let s:pets_status.pets = {}
-    endif
-
-    let img = eval(printf('pets#%s#get_pet("%s")', s:pets_status.world, a:name))
-    if empty(img)
-        return -1
-    endif
-
-    for idx in keys(s:pets_status.pets)
-        let pet = s:pets_status.pets[idx]
-        if pet.name is# a:name && pet.nickname is# nick
-            call s:echo_err(printf('%s named "%s" has already joined.', a:name, nick))
-            return -1
-        endif
-    endfor
-
-    let wran = s:pets_status.garden.wrange
-    let w = wran[0]+rand()%(wran[1]-wran[0])
-    let hran = s:pets_status.garden.hrange
-    let h = hran[0]+rand()%(hran[1]-hran[0])
-    let [bid, pid] = s:float_open(img, h, w, 'Normal', 49, 'botright', 2, 1, 0)
-    let idx = s:idx
-    let s:idx += 1
-    if s:pets_status.garden.shownn
-        let [nbid, npid] = s:float_open(printf("%s", nick), h-1, w, 'Normal', 49,
-                    \ 'botright', len(nick)+1, 1, 0)
-    else
-        let nbid = -1
-        let npid = -1
-    endif
-
-    " Hey!
-    call s:echo_msg(printf('%s(%s): %s', a:name, nick, nr2char(0x1f603)))
-    let tid = timer_start(1000, function(expand('<SID>').'pets_cb', [idx]), {'repeat':-1})
-
-    let pet_dict = {
-                \ 'buffer': bid,
-                \ 'winID': pid,
-                \ 'timerID': tid,
-                \ 'name': a:name,
-                \ 'nickname': nick,
-                \ 'image': img,
-                \ 'pos': [h, w],
-                \ 'join_time': localtime(),
-                \ 'friends': {},
-                \ 'partner': -1,
-                \ 'children': 0,
-                \ 'nick_buffer': nbid,
-                \ 'nick_winID': npid,
-                \ }
-    let s:pets_status.pets[idx] = pet_dict
-    if len(s:pets_status.pets) > s:pets_status.garden.max_pets
-        let old_idx = min(keys(s:pets_status.pets))
-        call pets#leave_pet('leave', old_idx)
-    endif
-    return idx
+    call call(printf('pets#%s#put_pets', pets#main#get_config('type')),
+                \ [a:name, nick])
 endfunction
 
 function! pets#leave_pet(type, ...) abort
     " type: leave (PetsLeave), close (PetsClose), lifetime
-    if !has_key(s:pets_status, 'pets') || empty(s:pets_status.pets)
-        call s:echo_err('there is no pets in garden.')
+    let pets = pets#main#get_config('pets')
+    " if !has_key(s:pets_status, 'pets') || empty(s:pets_status.pets)
+    if pets is v:null || empty(pets)
+        call pets#main#echo_err('there is no pets in garden.')
         return
     endif
-
     let index = s:get_index(a:000)
     if index == -1
         return
     endif
-
-    let opt = s:pets_status.pets[index]
-    let name = opt['name']
-    let pid = opt['winID']
-    let nick = opt['nickname']
-    " stop timer function.
-    call timer_stop(s:pets_status.pets[index]['timerID'])
-    " close floating/popup window.
-    if has('popupwin')
-        call popup_close(pid)
-        if s:pets_status.garden.shownn
-            let npid = opt['nick_winID']
-            call popup_close(npid)
-        endif
-    elseif has('nvim')
-        call nvim_win_close(pid, v:false)
-        if s:pets_status.garden.shownn
-            let npid = opt['nick_winID']
-            call nvim_win_close(npid, v:false)
-        endif
-    endif
-    " say bye.
-    if a:type == 'lifetime'
-        call s:echo_msg(printf('message: %s(%s) is gone.', name, nick))
-        for fid in keys(opt.friends)
-            let friend = s:pets_status.pets[fid]
-            " loss
-            call s:echo_msg(printf('%s(%s) -> %s(%s): %s',
-                        \ friend.name, friend.nickname, name, nick,
-                        \ nr2char(0x1f622)))
-            call remove(friend.friends, index)
-        endfor
-    else
-        " Bye
-        call s:echo_msg(printf('%s(%s): %s', name, nick, nr2char(0x1f44b)))
-        if a:type == 'leave'
-            for fid in keys(opt.friends)
-                let friend = s:pets_status.pets[fid]
-                " Bye
-                call s:echo_msg(printf('%s(%s) -> %s(%s): %s',
-                            \ friend.name, friend.nickname, name, nick,
-                            \ nr2char(0x1f44b)))
-                call remove(friend.friends, index)
-            endfor
-        endif
-    endif
-    " remove status.
-    call remove(s:pets_status.pets, index)
-endfunction
-
-function! <SID>pets_cb(index, timer_id) abort
-    let pets = s:pets_status.pets
-    let opt = pets[a:index]
-    let pid = opt['winID']
-    let line = opt['pos'][0]
-    let col = opt['pos'][1]
-    let garden = s:pets_status.garden
-    let wrange = garden['wrange']
-    let hrange = garden['hrange']
-    let lifetime_enable = s:pets_status.garden.lifetime
-    let birth_enable = s:pets_status.garden.birth
-
-    " lifetime
-    if lifetime_enable && (localtime()-opt.join_time > s:lifetime)
-        call pets#leave_pet('lifetime', a:index)
-        return
-    endif
-
-    " move
-    if hrange[0] >= line
-        let hnext = line+1
-    elseif hrange[1] <= line
-        let hnext = line-1
-    else
-        let rand = rand()%100
-        if has_key(s:pets_status, 'ball')
-            if s:pets_status.ball.pos[0] == line
-                let hnext = line
-            elseif s:pets_status.ball.pos[0] > line
-                let hnext = line+1
-            else
-                let hnext = line-1
-            endif
-        elseif rand >= 60
-            let hnext = line+1
-        elseif rand >= 40
-            let hnext = line
-        else
-            let hnext = line-1
-        endif
-    endif
-    let s:pets_status.pets[a:index]['pos'][0] = hnext
-
-    if wrange[0] >= col
-        let wnext = col+1
-    elseif wrange[1] <= col
-        let wnext = col-1
-    else
-        let rand = rand()%100
-        if has_key(s:pets_status, 'ball')
-            if s:pets_status.ball.pos[1] == col
-                let wnext = col
-            elseif s:pets_status.ball.pos[1] > col
-                let wnext = col+1
-            else
-                let wnext = col-1
-            endif
-        elseif rand >= 60
-            let wnext = col+1
-        elseif rand >= 40
-            let wnext = col
-        else
-            let wnext = col-1
-        endif
-    endif
-    let s:pets_status.pets[a:index]['pos'][1] = wnext
-
-    if has('popupwin')
-        call popup_setoptions(pid, {'col': wnext, 'line': hnext})
-        if s:pets_status.garden.shownn
-            let npid = opt['nick_winID']
-            call popup_setoptions(npid, {'col': wnext, 'line': hnext-1})
-        endif
-    elseif has('nvim')
-        call nvim_win_set_config(pid, {'relative': 'editor', 'col': wnext, 'row': hnext})
-        if s:pets_status.garden.shownn
-            let npid = opt['nick_winID']
-            call nvim_win_set_config(npid, {'relative': 'editor', 'col': wnext, 'row': hnext-1})
-        endif
-    endif
-
-    for idx in keys(pets)
-        if idx == a:index
-            " myself
-            continue
-        endif
-        if match(keys(opt.friends), idx) != -1
-            " already friend
-            if !has_key(pets, idx)
-                " suppress error message
-                continue
-            endif
-            let friend = s:pets_status.pets[idx]
-            if opt.partner == -1
-                " first child
-                let is_birth = (opt.name == friend.name)
-                            \ && (friend.partner == -1)
-                            \ && (opt.children == 0)
-                let bias = 1/2.0
-            else
-                " second child
-                let is_birth = (idx == opt.partner)
-                            \ && (opt.children < 2)
-                let bias = 3/4.0
-            endif
-            if birth_enable
-                        \ && (localtime()-opt.friends[idx] >= s:lifetime*bias)
-                        \ && is_birth
-                if lifetime_enable
-                    let s:pets_status.garden.max_pets += 1
-                endif
-                let opt.partner = idx
-                let friend.partner = a:index
-                let opt.children += 1
-                let friend.children += 1
-                let new_name = a:index..idx..'Jr'..opt.children
-                let child_idx = pets#put_pet(opt.name, new_name)
-                if child_idx == -1
-                    " failed to put pet.
-                    return
-                endif
-                let child = s:pets_status.pets[child_idx]
-                let opt.friends[child_idx] = localtime()
-                let friend.friends[child_idx] = localtime()
-                let child.friends[a:index] = localtime()
-                let child.friends[idx] = localtime()
-                call s:echo_msg(printf('message: %s(%s) is born!', opt.name, new_name))
-            endif
-        else
-            if !has_key(pets, idx)
-                " suppress error message
-                continue
-            endif
-            let join_time = max([pets[idx].join_time, opt.join_time])
-            let is_time = localtime()-join_time >= s:friend_time
-            let is_sep = abs(opt.pos[0]-pets[idx].pos[0]) <= s:friend_sep
-                        \ && abs(opt.pos[1]-pets[idx].pos[1]) <= s:friend_sep
-            if is_time && is_sep
-                " friends
-                call s:echo_msg(printf('%s(%s) and %s(%s) are friends: %s',
-                            \ opt.name, opt.nickname,
-                            \ pets[idx].name, pets[idx].nickname,
-                            \ nr2char(0x1f60a)))
-                let opt.friends[idx] = localtime()
-                let pets[idx].friends[a:index] = localtime()
-            endif
-        endif
-    endfor
+    call call(printf('pets#%s#leave_pet', pets#main#get_config('type')),
+                \ [a:type, index])
 endfunction
 
 function! pets#close()
     " clear pets
-    if has_key(s:pets_status, 'pets')
-        for idx in keys(s:pets_status.pets)
+    let pets = pets#main#get_config('pets')
+    " if has_key(s:pets_status, 'pets')
+    if !(pets is v:null)
+        for idx in keys(pets)
             call pets#leave_pet('close', idx)
         endfor
-        call remove(s:pets_status, 'pets')
+        " call remove(s:pets_status, 'pets')
+        call pets#main#rm_config('pets')
     endif
 
     " clear garden
-    if has_key(s:pets_status, 'garden')
-        let pid = s:pets_status.garden.winID
+    let garden = pets#main#get_config('garden')
+    " if has_key(s:pets_status, 'garden')
+    if !(garden is v:null)
+        let pid = garden.winID
         if has('popupwin')
             call popup_close(pid)
         elseif has('nvim')
             call nvim_win_close(pid, v:false)
         endif
-        call remove(s:pets_status, 'garden')
+        " call remove(s:pets_status, 'garden')
+        call pets#main#rm_config('garden')
     endif
 
     " clear messages
-    if has_key(s:pets_status, 'messages')
-        call remove(s:pets_status, 'messages')
+    " if has_key(s:pets_status, 'messages')
+    if !(pets#main#get_config('messages') is v:null)
+        " call remove(s:pets_status, 'messages')
+        call pets#main#rm_config('messages')
+    endif
+
+    " clear index
+    if !(pets#main#get_config('idx') is v:null)
+        call pets#main#rm_config('idx')
     endif
 
     " clear world's name
-    if has_key(s:pets_status, 'world')
-        call remove(s:pets_status, 'world')
+    " if has_key(s:pets_status, 'world')
+    if !(pets#main#get_config('world') is v:null)
+        " call remove(s:pets_status, 'world')
+        call pets#main#rm_config('world')
     endif
-
-    let s:idx = 0
 endfunction
 
 function! pets#throw_ball() abort
-    if !has_key(s:pets_status, 'garden')
-        call s:echo_err('Please create garden before.')
+    let garden = pets#main#get_config('garden')
+    " if !has_key(s:pets_status, 'garden')
+    if garden is v:null
+        call pets#main#echo_err('Please create garden before.')
         return
     endif
-    if s:pets_status.garden.tab != tabpagenr()
-        call s:echo_err('garden is not here.')
-        return
-    endif
-
-    if has_key(s:pets_status, 'ball')
-        return
-    endif
-
-    let img = s:set_config('ball_image', nr2char(0x26bd))
-    let wran = s:pets_status.garden.wrange
-    let hran = s:pets_status.garden.hrange
-    let start_point = rand()%3
-    if start_point == 0
-        " left side
-        let w = wran[0]+1
-        let h = hran[1]+(hran[0]-hran[1])*2/3
-    elseif start_point == 1
-        " bottom
-        let w = (wran[0]+wran[1])/2
-        let h = hran[1]-1
-    else
-        " right side
-        let w = wran[1]-1
-        let h = hran[1]+(hran[0]-hran[1])/3
-    endif
-    let [bid, pid] = s:float_open(img, h, w, 'Normal', 49, 'botright', 2, 1, 0)
-    " 時間間隔は1秒の約数じゃないほうが良さそう
-    let tid = timer_start(400, function(expand('<SID>').'ball_cb', [start_point]), {'repeat':-1})
-
-    let ball_dict = {
-                \ 'buffer': bid,
-                \ 'winID': pid,
-                \ 'timerID': tid,
-                \ 'image': img,
-                \ 'pos': [h, w],
-                \ 'count': 0,
-                \ 'ref': v:false,
-                \ }
-    let s:pets_status.ball = ball_dict
-endfunction
-
-function! s:ball_cb(start_point, tid) abort
-    let opt = s:pets_status.ball
-    let pid = opt['winID']
-    let line = opt['pos'][0]
-    let col = opt['pos'][1]
-    let bcount = opt['count']
-    let reflect = opt['ref']
-    let garden = s:pets_status.garden
-    let wrange = garden['wrange']
-    let hrange = garden['hrange']
-
-    if bcount >= s:ball_max_count
-        call s:clean_ball()
+    if garden.tab != tabpagenr()
+        call pets#main#echo_err('garden is not here.')
         return
     endif
 
-    if hrange[0] >= line
-        " bottom
-        let hnext = line+1
-        let s:pets_status.ball.ref = !reflect
-    elseif hrange[1] <= line
-        " top
-        let hnext = line-1
-        let s:pets_status.ball.ref = !reflect
-    else
-        if a:start_point == 0
-            let hnext = bcount%2==0 ? line+1 : line-1
-        elseif a:start_point == 1
-            if reflect
-                let hnext = line+1
-            else
-                let hnext = line-1
-            endif
-        else
-            let hnext = bcount%2==0 ? line+1 : line-1
-        endif
-    endif
-    let s:pets_status.ball['pos'][0] = hnext
-
-    if wrange[0] >= col
-        " left side
-        let wnext = col+1
-        let s:pets_status.ball.ref = !reflect
-    elseif wrange[1] <= col
-        " right side
-        let wnext = col-1
-        let s:pets_status.ball.ref = !reflect
-    else
-        if a:start_point == 0
-            if reflect
-                let wnext = col-1
-            else
-                let wnext = col+1
-            endif
-        elseif a:start_point == 1
-            let wnext = bcount%2==0 ? col+1 : col-1
-        else
-            if reflect
-                let wnext = col+1
-            else
-                let wnext = col-1
-            endif
-        endif
-    endif
-    let s:pets_status.ball['pos'][1] = wnext
-
-    let s:pets_status.ball.count += 1
-    if has('popupwin')
-        call popup_setoptions(pid, {'col': wnext, 'line': hnext})
-    elseif has('nvim')
-        call nvim_win_set_config(pid, {'relative': 'editor', 'col': wnext, 'row': hnext})
-    endif
-endfunction
-
-
-function! s:clean_ball() abort
-    if !has_key(s:pets_status, 'ball')
+    " if has_key(s:pets_status, 'ball')
+    if !pets#main#get_config('ball') is v:null
         return
     endif
-    let opt = s:pets_status.ball
-    let pid = opt['winID']
-    let tid = opt['timerID']
-    call timer_stop(tid)
-    if has('popupwin')
-        call popup_close(pid)
-    elseif has('nvim')
-        call nvim_win_close(pid, v:false)
-    endif
-    call remove(s:pets_status, 'ball')
+
+    call call(printf('pets#%s#throw_ball', pets#main#get_config('type')), [])
 endfunction
 
 function! pets#message_log() abort
-    if has_key(s:pets_status, 'messages')
-        for msg in s:pets_status.messages
+    let messages = pets#main#get_config('messages')
+    " if has_key(s:pets_status, 'messages')
+    if !(messages is v:null)
+        for msg in messages
             echo msg
         endfor
     endif
@@ -837,25 +196,24 @@ endfunction
 
 " commands
 function! s:pets_get_names(arglead, cmdline, cursorpos) abort
-    let names = eval(printf('pets#%s#get_pet_names()', s:pets_status.world))
+    let names = eval(printf('pets#themes#%s#get_pet_names()',
+                \ pets#main#get_config('world')))
     return filter(names, '!stridx(v:val, a:arglead)')
 endfunction
+
 function! s:pets_select_leave_pets(arglead, cmdline, cursorpos) abort
     let res = []
-    for idx in keys(s:pets_status.pets)
-        let opt = s:pets_status.pets[idx]
+    let pets = pets#main#get_config('pets')
+    for idx in keys(pets)
+        let opt = pets[idx]
         call add(res, printf('%s(%s)', opt.name, opt.nickname))
     endfor
     return filter(res, '!stridx(v:val, a:arglead)')
 endfunction
+
 command! -nargs=+ -complete=customlist,s:pets_get_names PetsJoin call pets#put_pet(<f-args>)
 command! -nargs=? -complete=customlist,s:pets_select_leave_pets PetsLeave call pets#leave_pet('leave', <f-args>)
 command! PetsClose call pets#close()
 command! PetsMessages call pets#message_log()
 command! PetsThrowBall call pets#throw_ball()
 
-" call s:set_pet_col()
-" augroup Pets
-"     autocmd!
-"     autocmd ColorScheme * call s:set_pet_col()
-" augroup END
