@@ -197,6 +197,16 @@ function! pets#main#float(
     return [bid, pid]
 endfunction
 
+function! pets#main#close_float(pid) abort
+    if win_id2tabwin(a:pid) != [0, 0]
+        if has('popupwin')
+            call popup_close(a:pid)
+        elseif has('nvim')
+            call nvim_win_close(a:pid, v:false)
+        endif
+    endif
+endfunction
+
 function! pets#main#get_defaults() abort
     return [s:max_pets, s:friend_time, s:lifetime, s:ball_max_count]
 endfunction
