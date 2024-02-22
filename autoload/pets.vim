@@ -53,7 +53,6 @@ function! pets#pets(...) abort
             let pet_names = []
         endtry
         if match(pet_names, printf('^%s$', name)) != -1
-            " let s:pets_status.world = wld
             call pets#main#set_config(wld, 'world')
             let type_var = printf('g:pets#themes#%s#type', wld)
             if exists(type_var)
@@ -65,7 +64,6 @@ function! pets#pets(...) abort
             break
         endif
     endfor
-    " if !has_key(s:pets_status, 'world')
     if pets#main#get_config('world') is v:null
         call pets#main#echo_err("incorrect pets's name.")
         return
@@ -79,6 +77,7 @@ function! pets#pets(...) abort
         endif
         call pets#put_pet(name, nick)
     endif
+    autocmd TabClosed <buffer> ++once call pets#close()
 endfunction
 
 function! pets#put_pet(name, ...) abort
@@ -92,7 +91,6 @@ function! pets#put_pet(name, ...) abort
         return -1
     endif
     if empty(a:000)
-        " let nick = s:idx
         let nick = string(pets#main#get_config('idx'))
     else
         let nick = a:1
@@ -105,7 +103,6 @@ endfunction
 function! pets#leave_pet(type, ...) abort
     " type: leave (PetsLeave), close (PetsClose), lifetime
     let pets = pets#main#get_config('pets')
-    " if !has_key(s:pets_status, 'pets') || empty(s:pets_status.pets)
     if pets is v:null || empty(pets)
         call pets#main#echo_err('there is no pets in garden.')
         return
@@ -121,33 +118,23 @@ endfunction
 function! pets#close()
     " clear pets
     let pets = pets#main#get_config('pets')
-    " if has_key(s:pets_status, 'pets')
     if !(pets is v:null)
         for idx in keys(pets)
             call pets#leave_pet('close', idx)
         endfor
-        " call remove(s:pets_status, 'pets')
         call pets#main#rm_config('pets')
     endif
 
     " clear garden
     let garden = pets#main#get_config('garden')
-    " if has_key(s:pets_status, 'garden')
     if !(garden is v:null)
         let pid = garden.winID
-        if has('popupwin')
-            call popup_close(pid)
-        elseif has('nvim')
-            call nvim_win_close(pid, v:false)
-        endif
-        " call remove(s:pets_status, 'garden')
+        call pets#main#close_float(pid)
         call pets#main#rm_config('garden')
     endif
 
     " clear messages
-    " if has_key(s:pets_status, 'messages')
     if !(pets#main#get_config('messages') is v:null)
-        " call remove(s:pets_status, 'messages')
         call pets#main#rm_config('messages')
     endif
 
@@ -157,16 +144,13 @@ function! pets#close()
     endif
 
     " clear world's name
-    " if has_key(s:pets_status, 'world')
     if !(pets#main#get_config('world') is v:null)
-        " call remove(s:pets_status, 'world')
         call pets#main#rm_config('world')
     endif
 endfunction
 
 function! pets#throw_ball() abort
     let garden = pets#main#get_config('garden')
-    " if !has_key(s:pets_status, 'garden')
     if garden is v:null
         call pets#main#echo_err('Please create garden before.')
         return
@@ -176,7 +160,6 @@ function! pets#throw_ball() abort
         return
     endif
 
-    " if has_key(s:pets_status, 'ball')
     if !pets#main#get_config('ball') is v:null
         return
     endif
@@ -186,7 +169,6 @@ endfunction
 
 function! pets#message_log() abort
     let messages = pets#main#get_config('messages')
-    " if has_key(s:pets_status, 'messages')
     if !(messages is v:null)
         for msg in messages
             echo msg

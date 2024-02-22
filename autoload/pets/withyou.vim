@@ -88,11 +88,7 @@ endfunction
 
 function! s:pets_with_you_update() abort
     for stat in s:withu_status
-        if has('popupwin')
-            call popup_close(stat.pid)
-        elseif has('nvim')
-            call nvim_win_close(stat.pid, v:false)
-        endif
+        call pets#main#close_float(stat.pid)
         call timer_stop(stat.tid)
 
         let [bid, pid] = s:float_cursor_open(stat.img, stat.count)
@@ -104,11 +100,7 @@ endfunction
 
 function! pets#withyou#close() abort
     for stat in s:withu_status
-        if has('popupwin')
-            call popup_close(stat.pid)
-        elseif has('nvim')
-            call nvim_win_close(stat.pid, v:false)
-        endif
+        call pets#main#close_float(stat.pid)
         call timer_stop(stat.tid)
     endfor
     let s:withu_status = []

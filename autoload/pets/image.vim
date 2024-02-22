@@ -111,13 +111,8 @@ function! pets#image#leave_pet(type, index) abort
     call timer_stop(opt['timerID'])
     " close floating/popup window.
     if garden.shownn
-        if has('popupwin')
-            let npid = opt['nick_winID']
-            call popup_close(npid)
-        elseif has('nvim')
-            let npid = opt['nick_winID']
-            call nvim_win_close(npid, v:false)
-        endif
+        let npid = opt['nick_winID']
+        call pets#main#close_float(npid)
     endif
     " say bye.
     call pets#main#echo_msg(printf('%s(%s): %s', name, nick, nr2char(0x1f44b)))

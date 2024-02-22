@@ -197,6 +197,16 @@ function! pets#main#float(
     return [bid, pid]
 endfunction
 
+function! pets#main#close_float(pid) abort
+    if win_id2tabwin(a:pid) != [0, 0]
+        if has('popupwin')
+            call popup_close(a:pid)
+        elseif has('nvim')
+            call nvim_win_close(a:pid, v:false)
+        endif
+    endif
+endfunction
+
 function! pets#main#get_defaults() abort
     return [s:max_pets, s:friend_time, s:lifetime, s:ball_max_count]
 endfunction
@@ -251,31 +261,6 @@ function! pets#main#echo_msg(msg) abort
     let time = strftime('[%b-%d %H:%M:%S]  ')
     call add(s:pets_status.messages, time..a:msg)
     echo a:msg
-endfunction
-
-function! pets#main#start_pets_timer() abort
-    if has_key(s:pets_status, 'pets')
-        for i in keys(s:pets_status.pets)
-            if has_key(s:pets_status.pets[i], 'timerID')
-                " already started
-            else
-                let tid = timer_start(1000, function(expand('<SID>').'pets_cb', [i]), {'repeat':-1})
-                let s:pets_status.pets[i]['timerID'] = tid
-            endif
-        endfor
-    endif
-endfunction
-
-function! pets#main#stop_pets_timer() abort
-    if has_key(s:pets_status, 'pets')
-        for i in keys(s:pets_status.pets)
-            if has_key(s:pets_status.pets[i], 'timerID')
-                let tid =  s:pets_status.pets[i]['timerID']
-                call timer_stop(tid)
-                call remove(s:pets_status.pets[i], 'timerID')
-            endif
-        endfor
-    endif
 endfunction
 
 function! pets#main#create_garden() abort
