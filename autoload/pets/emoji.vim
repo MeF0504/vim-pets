@@ -4,6 +4,33 @@ let s:friend_sep = 3
 let [s:max_pets, s:friend_time, s:lifetime, s:ball_max_count] =
             \ pets#main#get_defaults()
 
+function! pets#emoji#start_pets_timer() abort
+    let pets = pets#main#get_config('pets')
+    if !(pets is v:null)
+        for i in keys(pets)
+            if has_key(pets[i], 'timerID')
+                " already started
+            else
+                let tid = timer_start(1000, function(expand('<SID>').'pets_cb', [i]), {'repeat':-1})
+                let pets[i]['timerID'] = tid
+            endif
+        endfor
+    endif
+endfunction
+
+function! pets#emoji#stop_pets_timer() abort
+    let pets = pets#main#get_config('pets')
+    if !(pets is v:null)
+        for i in keys(pets)
+            if has_key(pets[i], 'timerID')
+                let tid =  pets[i]['timerID']
+                call timer_stop(tid)
+                call remove(pets[i], 'timerID')
+            endif
+        endfor
+    endif
+endfunction
+
 function! <SID>pets_cb(index, timer_id) abort
     let pets = pets#main#get_config('pets')
     let opt = pets[a:index]
