@@ -265,7 +265,7 @@ endfunction
 
 function! pets#main#create_garden() abort
     if has_key(s:pets_status, 'garden')
-        call pets#main#echo_err('garden is already created.')
+        call pets#main#echo_err('garden is already created. do not create.')
         return v:false
     endif
 

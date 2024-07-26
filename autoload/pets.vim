@@ -45,6 +45,10 @@ function! pets#pets(...) abort
     else
         let name = get(g:, 'pets_default_pet', 'dog')
     endif
+    if !(pets#main#get_config('garden') is v:null)
+        call pets#main#echo_err('garden is already created.')
+        return
+    endif
     for wld in g:pets_worlds
         let func_name = printf('pets#themes#%s#get_pet_names()', wld)
         try
