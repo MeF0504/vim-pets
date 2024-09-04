@@ -11,9 +11,24 @@ let s:names = [
             \ "Charie",
             \ "Snoopy",
             \ ]
+let s:name_cnt = {}
 
-function! pets#nicknames#getnick()
-    let idx = rand()%len(s:names)
-    return s:names[idx]
+function! pets#nicknames#getnick(name)
+    let nick = s:names[rand()%len(s:names)]
+    if has_key(s:name_cnt, a:name)
+        if has_key(s:name_cnt[a:name], nick)
+            let s:name_cnt[a:name][nick] += 1
+            let nick = printf('%s-%d', nick, s:name_cnt[a:name][nick])
+        else
+            let s:name_cnt[a:name][nick] = 0
+        endif
+    else
+        let s:name_cnt[a:name] = {}
+    endif
+    return nick
+endfunction
+
+function! pets#nicknames#init()
+    let s:name_cnt = {}
 endfunction
 

@@ -77,7 +77,7 @@ function! pets#pets(...) abort
         if a:0 >= 2
             let nick = a:2
         else
-            let nick = pets#nicknames#getnick()
+            let nick = pets#nicknames#getnick(name)
         endif
         call pets#put_pet(name, nick)
     endif
@@ -95,7 +95,7 @@ function! pets#put_pet(name, ...) abort
         return -1
     endif
     if empty(a:000)
-        let nick = pets#nicknames#getnick()
+        let nick = pets#nicknames#getnick(a:name)
     else
         let nick = a:1
     endif
@@ -128,6 +128,9 @@ function! pets#close()
         endfor
         call pets#main#rm_config('pets')
     endif
+
+    " clear nickname settings
+    call pets#nicknames#init()
 
     " clear garden
     let garden = pets#main#get_config('garden')
