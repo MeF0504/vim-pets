@@ -77,7 +77,7 @@ function! pets#pets(...) abort
         if a:0 >= 2
             let nick = a:2
         else
-            let nick = string(pets#main#get_config('idx'))
+            let nick = pets#nicknames#getnick()
         endif
         call pets#put_pet(name, nick)
     endif
@@ -95,7 +95,7 @@ function! pets#put_pet(name, ...) abort
         return -1
     endif
     if empty(a:000)
-        let nick = string(pets#main#get_config('idx'))
+        let nick = pets#nicknames#getnick()
     else
         let nick = a:1
     endif

@@ -151,7 +151,7 @@ function! <SID>pets_cb(index, timer_id) abort
                             \ 'pets', a:index, 'children')
                 call pets#main#set_config(friend.children+1,
                             \ 'pets', idx, 'children')
-                let new_name = a:index..idx..'Jr'..opt.children
+                let new_name = pets#nicknames#getnick()
                 let child_idx = pets#put_pet(opt.name, new_name)
                 if child_idx == -1
                     " failed to put pet.
