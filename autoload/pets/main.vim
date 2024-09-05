@@ -79,43 +79,95 @@ function! pets#main#get_config(key) abort
     endif
 endfunction
 
-function! pets#main#set_config(val, ...) abort
-    if a:0 == 1
-        let s:pets_status[a:1] = a:val
-        return
-    endif
-    let var_str = 's:pets_status'
-    for k in a:000
-        let var = eval(var_str)
-        if (type(var) == type({})) && !has_key(var, k)
-            let var[k] = {}
-        endif
-        if type(k) == type("")
-            let key = k
-        else
-            let key = string(k)
-        endif
-        let var_str .= printf('["%s"]', key)
-    endfor
-    if type(a:val) == type("")
-        let val = printf('"%s"', a:val)
-    else
-        let val = string(a:val)
-    endif
-    execute printf("let %s = %s", var_str, val)
+" function! pets#main#set_config(val, ...) abort
+"     if a:0 == 1
+"         let s:pets_status[a:1] = a:val
+"         return
+"     endif
+"     let var_str = 's:pets_status'
+"     for k in a:000
+"         let var = eval(var_str)
+"         if (type(var) == type({})) && !has_key(var, k)
+"             let var[k] = {}
+"         endif
+"         if type(k) == type("")
+"             let key = k
+"         else
+"             let key = string(k)
+"         endif
+"         let var_str .= printf('["%s"]', key)
+"     endfor
+"     if type(a:val) == type("")
+"         let val = printf('"%s"', a:val)
+"     else
+"         let val = string(a:val)
+"     endif
+"     execute printf("let %s = %s", var_str, val)
+" endfunction
+
+function! pets#main#set_config(sec, val) abort
+    let s:pets_status[a:sec] = a:val
 endfunction
 
-function! pets#main#rm_config(...) abort
-    if a:0 == 1
-        call remove(s:pets_status, a:1)
-        return
-    endif
+function! pets#main#init_pet(idx, dict) abort
+    let s:pets_status.pets[a:idx] = a:dict
+endfunction
 
-    let var_str = 's:pets_status'
-    for k in a:000[:-2]
-        let var_str .= printf('["%s"]', k)
-    endfor
-    execute printf("call remove(%s, %s)", var_str, a:000[-1])
+function! pets#main#set_garden_opt(opt, val) abort
+    let s:pets_status.garden[a:opt] = a:val
+endfunction
+
+function! pets#main#set_pets_opt(idx, opt, val) abort
+    let s:pets_status.pets[a:idx][a:opt] = a:val
+endfunction
+
+function! pets#main#set_pets_subopt(idx, opt1, opt2, val) abort
+    let s:pets_status.pets[a:idx][a:opt1][a:opt2] = a:val
+endfunction
+
+function! pets#main#set_ball_opt(opt, val) abort
+    let s:pets_status.ball[a:opt] = a:val
+endfunction
+
+function! pets#main#set_ball_subopt(opt1, opt2, val) abort
+    let s:pets_status.ball[a:opt1][a:opt2] = a:val
+endfunction
+
+" function! pets#main#set_partner(idx, partneridx) abort
+"     let s:pets_status.pets[a:idx]['partner'] = a:partneridx
+" endfunction
+
+" function! pets#main#set_child(idx, child_cnt)
+"     let s:pets_status.pets[a:idx]['children'] = a:child_cnt
+" endfunction
+
+" function! pets#main#rm_config(...) abort
+"     if a:0 == 1
+"         call remove(s:pets_status, a:1)
+"         return
+"     endif
+
+"     let var_str = 's:pets_status'
+"     for k in a:000[:-2]
+"         let var_str .= printf('["%s"]', k)
+"     endfor
+"     execute printf("call remove(%s, %s)", var_str, a:000[-1])
+" endfunction
+
+function! pets#main#rm_config(key) abort
+    call remove(s:pets_status, a:key)
+    return
+endfunction
+function! pets#main#rm_pets(idx)
+    call remove(s:pets_status.pets, a:idx)
+endfunction
+
+function! pets#main#rm_pets_opt(idx, opt)
+    call remove(s:pets_status.pets[a:idx], a:opt)
+endfunction
+
+function! pets#main#rm_pets_subopt(idx, opt1, opt2)
+    call remove(s:pets_status.pets[a:idx][a:opt1], a:opt2)
 endfunction
 
 function! pets#main#float(
