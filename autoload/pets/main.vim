@@ -203,10 +203,12 @@ function! pets#main#float(
 endfunction
 
 function! pets#main#close_float(pid) abort
-    if win_id2tabwin(a:pid) != [0, 0]
-        if has('popupwin')
+    if has('popupwin')
+        if match(popup_list(), printf("^%d$", a:pid)) != -1
             call popup_close(a:pid)
-        elseif has('nvim')
+        endif
+    elseif has('nvim')
+        if win_id2tabwin(a:pid) != [0, 0]
             call nvim_win_close(a:pid, v:false)
         endif
     endif
@@ -266,6 +268,14 @@ function! pets#main#echo_msg(msg) abort
     let time = strftime('[%b-%d %H:%M:%S]  ')
     call add(s:pets_status.messages, time..a:msg)
     echo a:msg
+endfunction
+
+function! pets#main#log(msg) abort
+    if !has_key(s:pets_status, 'messages')
+        let s:pets_status.log = []
+    endif
+    let time = strftime('[%b-%d %H:%M:%S]  ')
+    call add(s:pets_status.log, time..a:msg)
 endfunction
 
 function! pets#main#create_garden() abort

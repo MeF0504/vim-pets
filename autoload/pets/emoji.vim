@@ -122,6 +122,7 @@ function! <SID>pets_cb(index, timer_id) abort
             " already friend
             if !has_key(pets, idx)
                 " suppress error message
+                call pets#main#log(printf('skip check friend, %d', idx))
                 continue
             endif
             let friend = pets[idx]

@@ -173,7 +173,7 @@ endfunction
 
 function! pets#message_log() abort
     let messages = pets#main#get_config('messages')
-    if !(messages is v:null)
+    if messages isnot v:null
         for msg in messages
             echo msg
         endfor
