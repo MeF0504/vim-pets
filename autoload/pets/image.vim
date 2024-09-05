@@ -27,7 +27,6 @@ function! s:redraw_cb(index, timer_id) abort
     let line = opt['pos'][0]
     let col = opt['pos'][1]
     let l:count = opt['count']
-    " call pets#main#set_config(l:count+1, 'pets', a:index, 'count')
     call pets#main#set_pets_opt(a:index, 'count', l:count+1)
     let img_pathes = opt['image_pathes']
     let L = len(img_pathes)
@@ -40,7 +39,6 @@ function! pets#image#put_pets(name, nick) abort
         return -1
     endif
     if pets#main#get_config('pets') is v:null
-        " call pets#main#set_config({}, 'pets')
         call pets#main#set_opt('pets', {})
     endif
 
@@ -72,7 +70,6 @@ function! pets#image#put_pets(name, nick) abort
     let h = hran[0]+rand()%(hran[1]-hran[0])
     " call pets#image#display_sixel(img_pathes[0], h, w)
     let idx = pets#main#get_config('idx')
-    " call pets#main#set_config(idx+1, 'idx')
     call pets#main#set_opt('idx', idx+1)
     if garden.shownn
         let [nbid, npid] = pets#main#float(printf("%s", a:nick), h-1, w,
@@ -96,7 +93,6 @@ function! pets#image#put_pets(name, nick) abort
                 \ 'nick_winID': npid,
                 \ 'count': 0,
                 \ }
-    " call pets#main#set_config(pet_dict, 'pets', idx)
     call pets#main#init_pet(idx, pet_dict)
     if len(pets) > garden.max_pets
         let old_idx = min(keys(pets))
@@ -121,7 +117,6 @@ function! pets#image#leave_pet(type, index) abort
     " say bye.
     call pets#main#echo_msg(printf('%s(%s): %s', name, nick, nr2char(0x1f44b)))
     " remove status.
-    " call pets#main#rm_config('pets', a:index)
     call pets#main#rm_pets(a:index)
     " clear
     execute "normal! \<c-l>"

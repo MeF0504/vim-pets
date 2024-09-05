@@ -57,7 +57,6 @@ function! pets#pets(...) abort
             let pet_names = []
         endtry
         if match(pet_names, printf('^%s$', name)) != -1
-            " call pets#main#set_config(wld, 'world')
             call pets#main#set_config('world', wld)
             let type_var = printf('g:pets#themes#%s#type', wld)
             if exists(type_var)
@@ -65,7 +64,6 @@ function! pets#pets(...) abort
             else
                 let type_name = 'emoji'
             endif
-            " call pets#main#set_config(type_name, 'type')
             call pets#main#set_config('type', type_name)
             break
         endif
