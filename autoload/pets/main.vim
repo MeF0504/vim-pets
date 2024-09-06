@@ -91,11 +91,27 @@ function! pets#main#set_garden_opt(opt, val) abort
     let s:pets_status.garden[a:opt] = a:val
 endfunction
 
+function! pets#main#get_pet(idx) abort
+    if !has_key(s:pets_status.pets, a:idx)
+        call pets#main#log(printf('failed to get pet: %d', a:idx))
+        return v:null
+    endif
+    return s:pets_status.pets[a:idx]
+endfunction
+
 function! pets#main#set_pets_opt(idx, opt, val) abort
+    if !has_key(s:pets_status.pets, a:idx)
+        call pets#main#log(printf('failed to set pet opt: %d', a:idx))
+        return -1
+    endif
     let s:pets_status.pets[a:idx][a:opt] = a:val
 endfunction
 
 function! pets#main#set_pets_subopt(idx, opt1, opt2, val) abort
+    if !has_key(s:pets_status.pets, a:idx)
+        call pets#main#log(printf('failed to set pet subopt: %d', a:idx))
+        return -1
+    endif
     let s:pets_status.pets[a:idx][a:opt1][a:opt2] = a:val
 endfunction
 
@@ -112,14 +128,26 @@ function! pets#main#rm_config(key) abort
 endfunction
 
 function! pets#main#rm_pets(idx)
+    if !has_key(s:pets_status.pets, a:idx)
+        call pets#main#log(printf('%d is already removed', a:idx))
+        return -1
+    endif
     call remove(s:pets_status.pets, a:idx)
 endfunction
 
 function! pets#main#rm_pets_opt(idx, opt)
+    if !has_key(s:pets_status.pets, a:idx)
+        call pets#main#log(printf('%d is already removed (opt)', a:idx))
+        return -1
+    endif
     call remove(s:pets_status.pets[a:idx], a:opt)
 endfunction
 
 function! pets#main#rm_pets_subopt(idx, opt1, opt2)
+    if !has_key(s:pets_status.pets, a:idx)
+        call pets#main#log(printf('%d is already removed (subopt)', a:idx))
+        return -1
+    endif
     call remove(s:pets_status.pets[a:idx][a:opt1], a:opt2)
 endfunction
 
@@ -271,11 +299,21 @@ function! pets#main#echo_msg(msg) abort
 endfunction
 
 function! pets#main#log(msg) abort
-    if !has_key(s:pets_status, 'messages')
+    if !has_key(s:pets_status, 'log')
         let s:pets_status.log = []
     endif
     let time = strftime('[%b-%d %H:%M:%S]  ')
     call add(s:pets_status.log, time..a:msg)
+endfunction
+
+function! pets#main#showlog() abort
+    if !has_key(s:pets_status, 'log')
+        echo 'no log messages'
+        return
+    endif
+    for msg in s:pets_status.log
+        echo msg
+    endfor
 endfunction
 
 function! pets#main#create_garden() abort

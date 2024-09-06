@@ -122,7 +122,7 @@ function! <SID>pets_cb(index, timer_id) abort
             " already friend
             if !has_key(pets, idx)
                 " suppress error message
-                call pets#main#log(printf('skip check friend, %d', idx))
+                call pets#main#log(printf('skip check friend 1, %d', idx))
                 continue
             endif
             let friend = pets[idx]
@@ -163,6 +163,7 @@ function! <SID>pets_cb(index, timer_id) abort
         else
             if !has_key(pets, idx)
                 " suppress error message
+                call pets#main#log(printf('skip check friend 2, %d', idx))
                 continue
             endif
             let join_time = max([pets[idx].join_time, opt.join_time])
@@ -264,6 +265,10 @@ function! pets#emoji#leave_pet(type, index) abort
     if a:type == 'lifetime'
         call pets#main#echo_msg(printf('message: %s(%s) is gone.', name, nick))
         for fid in keys(opt.friends)
+            if !has_key(pets, fid)
+                call pets#main#log(printf('skip say bye 1, %d', fid))
+                continue
+            endif
             let friend = pets[fid]
             " loss
             call pets#main#echo_msg(printf('%s(%s) -> %s(%s): %s',
@@ -276,6 +281,10 @@ function! pets#emoji#leave_pet(type, index) abort
         call pets#main#echo_msg(printf('%s(%s): %s', name, nick, nr2char(0x1f44b)))
         if a:type == 'leave'
             for fid in keys(opt.friends)
+                if !has_key(pets, fid)
+                    call pets#main#log(printf('skip say bye 2, %d', fid))
+                    continue
+                endif
                 let friend = pets[fid]
                 " Bye
                 call pets#main#echo_msg(printf('%s(%s) -> %s(%s): %s',
