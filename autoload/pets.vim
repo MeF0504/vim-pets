@@ -180,6 +180,21 @@ function! pets#message_log() abort
     endif
 endfunction
 
+function! pets#showlist() abort
+    let pets = pets#main#get_config('pets')
+    if pets is v:null
+        echo 'no pets'
+        return
+    endif
+    for idx in keys(pets)
+        let opt = pets[idx]
+        let name = opt.name
+        let nick = opt.nickname
+        let time = strftime('%H:%M:%S', opt.join_time)
+        echo printf('%s (%s) from %s', name, nick, time)
+    endfor
+endfunction
+
 " commands
 function! s:pets_get_names(arglead, cmdline, cursorpos) abort
     let names = eval(printf('pets#themes#%s#get_pet_names()',
@@ -202,4 +217,5 @@ command! -nargs=? -complete=customlist,s:pets_select_leave_pets PetsLeave call p
 command! PetsClose call pets#close()
 command! PetsMessages call pets#message_log()
 command! PetsThrowBall call pets#throw_ball()
+command! PetsList call pets#showlist()
 
