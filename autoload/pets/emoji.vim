@@ -73,7 +73,6 @@ function! <SID>pets_cb(index, timer_id) abort
             let hnext = line-1
         endif
     endif
-    call pets#main#set_config(hnext, 'pets', a:index, 'pos', 0)
 
     if wrange[0] >= col
         let wnext = col+1
@@ -98,7 +97,7 @@ function! <SID>pets_cb(index, timer_id) abort
             let wnext = col-1
         endif
     endif
-    call pets#main#set_config(wnext, 'pets', a:index, 'pos', 1)
+    call pets#main#set_pets_opt(a:index, 'pos', [hnext, wnext])
 
     if has('popupwin')
         call popup_setoptions(pid, {'col': wnext, 'line': hnext})
@@ -123,6 +122,7 @@ function! <SID>pets_cb(index, timer_id) abort
             " already friend
             if !has_key(pets, idx)
                 " suppress error message
+                call pets#main#log(printf('skip check friend 1, %d', idx))
                 continue
             endif
             let friend = pets[idx]
@@ -142,34 +142,28 @@ function! <SID>pets_cb(index, timer_id) abort
                         \ && (localtime()-opt.friends[idx] >= s:lifetime*bias)
                         \ && is_birth
                 if lifetime_enable
-                    call pets#main#set_config(garden.max_pets+1,
-                                \ 'garden', 'max_pets')
+                    call pets#main#set_garden_opt('max_pets', garden.max_pets+1)
                 endif
-                call pets#main#set_config(idx, 'pets', a:index, 'partner')
-                call pets#main#set_config(a:index, 'pets', idx, 'partner')
-                call pets#main#set_config(opt.children+1,
-                            \ 'pets', a:index, 'children')
-                call pets#main#set_config(friend.children+1,
-                            \ 'pets', idx, 'children')
+                call pets#main#set_pets_opt(a:index, 'partner', idx)
+                call pets#main#set_pets_opt(idx, 'partner', a:index)
+                call pets#main#set_pets_opt(a:index, 'children', opt.children+1)
+                call pets#main#set_pets_opt(idx, 'children', friend.children+1)
                 let new_name = a:index..idx..'Jr'..opt.children
                 let child_idx = pets#put_pet(opt.name, new_name)
                 if child_idx == -1
                     " failed to put pet.
                     return
                 endif
-                call pets#main#set_config(localtime(),
-                            \ 'pets', a:index, 'friends', child_idx)
-                call pets#main#set_config(localtime(),
-                            \ 'pets', idx, 'friends', child_idx)
-                call pets#main#set_config(localtime(),
-                            \ 'pets', child_idx, 'friends', a:index)
-                call pets#main#set_config(localtime(),
-                            \ 'pets', child_idx, 'friends', idx)
+                call pets#main#set_pets_subopt(a:index, 'friends', child_idx, localtime())
+                call pets#main#set_pets_subopt(idx, 'friends', child_idx, localtime())
+                call pets#main#set_pets_subopt(child_idx, 'friends', a:index, localtime())
+                call pets#main#set_pets_subopt(child_idx, 'friends', idx, localtime())
                 call pets#main#echo_msg(printf('message: %s(%s) is born!', opt.name, new_name))
             endif
         else
             if !has_key(pets, idx)
                 " suppress error message
+                call pets#main#log(printf('skip check friend 2, %d', idx))
                 continue
             endif
             let join_time = max([pets[idx].join_time, opt.join_time])
@@ -182,10 +176,8 @@ function! <SID>pets_cb(index, timer_id) abort
                             \ opt.name, opt.nickname,
                             \ pets[idx].name, pets[idx].nickname,
                             \ nr2char(0x1f60a)))
-                call pets#main#set_config(localtime(),
-                            \ 'pets', a:index, 'friends', idx)
-                call pets#main#set_config(localtime(),
-                            \ 'pets', idx, 'friends', a:index)
+                call pets#main#set_pets_subopt(a:index, 'friends', idx, localtime())
+                call pets#main#set_pets_subopt(idx, 'friends', a:index, localtime())
             endif
         endif
     endfor
@@ -193,7 +185,7 @@ endfunction
 
 function! pets#emoji#put_pets(name, nick)
     if pets#main#get_config('pets') is v:null
-        call pets#main#set_config({}, 'pets')
+        call pets#main#set_config('pets', {})
     endif
 
     let world = pets#main#get_config('world')
@@ -218,7 +210,7 @@ function! pets#emoji#put_pets(name, nick)
     let h = hran[0]+rand()%(hran[1]-hran[0])
     let [bid, pid] = pets#main#float(img, h, w, 'Normal', 49, 'botright', 2, 1, 0)
     let idx = pets#main#get_config('idx')
-    call pets#main#set_config(idx+1, 'idx')
+    call pets#main#set_config('idx', idx+1)
     if garden.shownn
         let [nbid, npid] = pets#main#float(printf("%s", a:nick), h-1, w,
                     \ 'Normal', 49, 'botright', len(a:nick)+1, 1, 0)
@@ -246,7 +238,7 @@ function! pets#emoji#put_pets(name, nick)
                 \ 'nick_buffer': nbid,
                 \ 'nick_winID': npid,
                 \ }
-    call pets#main#set_config(pet_dict, 'pets', idx)
+    call pets#main#init_pet(idx, pet_dict)
     if len(pets) > garden.max_pets
         let old_idx = min(keys(pets))
         call pets#emoji#leave_pet('leave', old_idx)
@@ -273,6 +265,10 @@ function! pets#emoji#leave_pet(type, index) abort
     if a:type == 'lifetime'
         call pets#main#echo_msg(printf('message: %s(%s) is gone.', name, nick))
         for fid in keys(opt.friends)
+            if !has_key(pets, fid)
+                call pets#main#log(printf('skip say bye 1, %d', fid))
+                continue
+            endif
             let friend = pets[fid]
             " loss
             call pets#main#echo_msg(printf('%s(%s) -> %s(%s): %s',
@@ -285,17 +281,21 @@ function! pets#emoji#leave_pet(type, index) abort
         call pets#main#echo_msg(printf('%s(%s): %s', name, nick, nr2char(0x1f44b)))
         if a:type == 'leave'
             for fid in keys(opt.friends)
+                if !has_key(pets, fid)
+                    call pets#main#log(printf('skip say bye 2, %d', fid))
+                    continue
+                endif
                 let friend = pets[fid]
                 " Bye
                 call pets#main#echo_msg(printf('%s(%s) -> %s(%s): %s',
                             \ friend.name, friend.nickname, name, nick,
                             \ nr2char(0x1f44b)))
-                call pets#main#rm_config('pets', fid, 'friends', a:index)
+                call pets#main#rm_pets_subopt(fid, 'friends', a:index)
             endfor
         endif
     endif
     " remove status.
-    call pets#main#rm_config('pets', a:index)
+    call pets#main#rm_pets(a:index)
 endfunction
 
 function! s:ball_cb(start_point, tid) abort
@@ -317,11 +317,11 @@ function! s:ball_cb(start_point, tid) abort
     if hrange[0] >= line
         " bottom
         let hnext = line+1
-        call pets#main#set_config(!reflect, 'ball', 'ref')
+        call pets#main#set_ball_opt('ref', !reflect)
     elseif hrange[1] <= line
         " top
         let hnext = line-1
-        call pets#main#set_config(!reflect, 'ball', 'ref')
+        call pets#main#set_ball_opt('ref', !reflect)
     else
         if a:start_point == 0
             let hnext = bcount%2==0 ? line+1 : line-1
@@ -335,16 +335,16 @@ function! s:ball_cb(start_point, tid) abort
             let hnext = bcount%2==0 ? line+1 : line-1
         endif
     endif
-    call pets#main#set_config(hnext, 'ball', 'pos', 0)
+    call pets#main#set_ball_subopt('pos', 0, hnext)
 
     if wrange[0] >= col
         " left side
         let wnext = col+1
-        call pets#main#set_config(!reflect, 'ball', 'ref')
+        call pets#main#set_ball_opt('ref', !reflect)
     elseif wrange[1] <= col
         " right side
         let wnext = col-1
-        call pets#main#set_config(!reflect, 'ball', 'ref')
+        call pets#main#set_ball_opt('ref', !reflect)
     else
         if a:start_point == 0
             if reflect
@@ -362,9 +362,9 @@ function! s:ball_cb(start_point, tid) abort
             endif
         endif
     endif
-    call pets#main#set_config(wnext, 'ball', 'pos', 1)
+    call pets#main#set_ball_subopt('pos', 1, wnext)
 
-    call pets#main#set_config(ball.count+1, 'ball', 'count')
+    call pets#main#set_ball_opt('count', ball.count+1)
     if has('popupwin')
         call popup_setoptions(pid, {'col': wnext, 'line': hnext})
     elseif has('nvim')
@@ -417,6 +417,6 @@ function! pets#emoji#throw_ball() abort
                 \ 'count': 0,
                 \ 'ref': v:false,
                 \ }
-    call pets#main#set_config(ball_dict, 'ball')
+    call pets#main#set_config('ball', ball_dict)
 endfunction
 

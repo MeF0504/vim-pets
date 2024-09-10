@@ -7,6 +7,9 @@ let s:echoraw = has('nvim')
 
 function pets#image#display_sixel(path, lnum, cnum) abort
   " save cursor pos
+  if !filereadable(a:path)
+      call pets#main#log(printf('image file is not found, %s', a:path))
+  endif
   call s:echoraw("\x1b[s")
 
   " move cursor pos
@@ -19,15 +22,18 @@ function pets#image#display_sixel(path, lnum, cnum) abort
   call s:echoraw("\x1b[u")
 endfunction
 
-" call pets#image#display_sixel('autoload/pets/themes/test_img/mef0504.jpg', 5, 10)
+" call pets#image#display_sixel('autoload/pets/themes/test_img/mef0504_0.jpg', 5, 10)
 
 function! s:redraw_cb(index, timer_id) abort
-    let pets = pets#main#get_config('pets')
-    let opt = pets[a:index]
+    let opt = pets#main#get_pet(a:index)
+    if opt is v:null
+        call pets#main#echo_err('failed to get pet')
+        return
+    endif
     let line = opt['pos'][0]
     let col = opt['pos'][1]
     let l:count = opt['count']
-    call pets#main#set_config(l:count+1, 'pets', a:index, 'count')
+    call pets#main#set_pets_opt(a:index, 'count', l:count+1)
     let img_pathes = opt['image_pathes']
     let L = len(img_pathes)
     call pets#image#display_sixel(img_pathes[l:count%L], line, col)
@@ -39,7 +45,7 @@ function! pets#image#put_pets(name, nick) abort
         return -1
     endif
     if pets#main#get_config('pets') is v:null
-        call pets#main#set_config({}, 'pets')
+        call pets#main#set_config('pets', {})
     endif
 
     let world = pets#main#get_config('world')
@@ -70,7 +76,7 @@ function! pets#image#put_pets(name, nick) abort
     let h = hran[0]+rand()%(hran[1]-hran[0])
     " call pets#image#display_sixel(img_pathes[0], h, w)
     let idx = pets#main#get_config('idx')
-    call pets#main#set_config(idx+1, 'idx')
+    call pets#main#set_config('idx', idx+1)
     if garden.shownn
         let [nbid, npid] = pets#main#float(printf("%s", a:nick), h-1, w,
                     \ 'Normal', 49, 'botright', len(a:nick)+1, 1, 0)
@@ -92,8 +98,9 @@ function! pets#image#put_pets(name, nick) abort
                 \ 'nick_buffer': nbid,
                 \ 'nick_winID': npid,
                 \ 'count': 0,
+                \ 'join_time': localtime(),
                 \ }
-    call pets#main#set_config(pet_dict, 'pets', idx)
+    call pets#main#init_pet(idx, pet_dict)
     if len(pets) > garden.max_pets
         let old_idx = min(keys(pets))
         call pets#image#leave_pet('leave', old_idx)
@@ -103,8 +110,13 @@ endfunction
 
 function! pets#image#leave_pet(type, index) abort
     let garden = pets#main#get_config('garden')
-    let pets = pets#main#get_config('pets')
-    let opt = pets[a:index]
+    let opt = pets#main#get_pet(a:index)
+    if opt is v:null
+        call pets#main#echo_err('failed to get pet')
+        " clear
+        execute "normal! \<c-l>"
+        return
+    endif
     let name = opt['name']
     let nick = opt['nickname']
     " stop timer function.
@@ -117,7 +129,7 @@ function! pets#image#leave_pet(type, index) abort
     " say bye.
     call pets#main#echo_msg(printf('%s(%s): %s', name, nick, nr2char(0x1f44b)))
     " remove status.
-    call pets#main#rm_config('pets', a:index)
+    call pets#main#rm_pets(a:index)
     " clear
     execute "normal! \<c-l>"
 endfunction

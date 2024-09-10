@@ -57,14 +57,14 @@ function! pets#pets(...) abort
             let pet_names = []
         endtry
         if match(pet_names, printf('^%s$', name)) != -1
-            call pets#main#set_config(wld, 'world')
+            call pets#main#set_config('world', wld)
             let type_var = printf('g:pets#themes#%s#type', wld)
             if exists(type_var)
                 let type_name = eval(type_var)
             else
                 let type_name = 'emoji'
             endif
-            call pets#main#set_config(type_name, 'type')
+            call pets#main#set_config('type', type_name)
             break
         endif
     endfor
@@ -164,7 +164,7 @@ function! pets#throw_ball() abort
         return
     endif
 
-    if !pets#main#get_config('ball') is v:null
+    if pets#main#get_config('ball') isnot v:null
         return
     endif
 
@@ -173,11 +173,26 @@ endfunction
 
 function! pets#message_log() abort
     let messages = pets#main#get_config('messages')
-    if !(messages is v:null)
+    if messages isnot v:null
         for msg in messages
             echo msg
         endfor
     endif
+endfunction
+
+function! pets#showlist() abort
+    let pets = pets#main#get_config('pets')
+    if pets is v:null
+        echo 'no pets'
+        return
+    endif
+    for idx in keys(pets)
+        let opt = pets[idx]
+        let name = opt.name
+        let nick = opt.nickname
+        let time = strftime('%H:%M:%S', opt.join_time)
+        echo printf('%s (%s) from %s', name, nick, time)
+    endfor
 endfunction
 
 " commands
@@ -202,4 +217,5 @@ command! -nargs=? -complete=customlist,s:pets_select_leave_pets PetsLeave call p
 command! PetsClose call pets#close()
 command! PetsMessages call pets#message_log()
 command! PetsThrowBall call pets#throw_ball()
+command! PetsList call pets#showlist()
 
