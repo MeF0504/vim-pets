@@ -79,43 +79,76 @@ function! pets#main#get_config(key) abort
     endif
 endfunction
 
-function! pets#main#set_config(val, ...) abort
-    if a:0 == 1
-        let s:pets_status[a:1] = a:val
-        return
-    endif
-    let var_str = 's:pets_status'
-    for k in a:000
-        let var = eval(var_str)
-        if (type(var) == type({})) && !has_key(var, k)
-            let var[k] = {}
-        endif
-        if type(k) == type("")
-            let key = k
-        else
-            let key = string(k)
-        endif
-        let var_str .= printf('["%s"]', key)
-    endfor
-    if type(a:val) == type("")
-        let val = printf('"%s"', a:val)
-    else
-        let val = string(a:val)
-    endif
-    execute printf("let %s = %s", var_str, val)
+function! pets#main#set_config(sec, val) abort
+    let s:pets_status[a:sec] = a:val
 endfunction
 
-function! pets#main#rm_config(...) abort
-    if a:0 == 1
-        call remove(s:pets_status, a:1)
-        return
-    endif
+function! pets#main#init_pet(idx, dict) abort
+    let s:pets_status.pets[a:idx] = a:dict
+endfunction
 
-    let var_str = 's:pets_status'
-    for k in a:000[:-2]
-        let var_str .= printf('["%s"]', k)
-    endfor
-    execute printf("call remove(%s, %s)", var_str, a:000[-1])
+function! pets#main#set_garden_opt(opt, val) abort
+    let s:pets_status.garden[a:opt] = a:val
+endfunction
+
+function! pets#main#get_pet(idx) abort
+    if !has_key(s:pets_status.pets, a:idx)
+        call pets#main#log(printf('failed to get pet: %d', a:idx))
+        return v:null
+    endif
+    return s:pets_status.pets[a:idx]
+endfunction
+
+function! pets#main#set_pets_opt(idx, opt, val) abort
+    if !has_key(s:pets_status.pets, a:idx)
+        call pets#main#log(printf('failed to set pet opt: %d', a:idx))
+        return -1
+    endif
+    let s:pets_status.pets[a:idx][a:opt] = a:val
+endfunction
+
+function! pets#main#set_pets_subopt(idx, opt1, opt2, val) abort
+    if !has_key(s:pets_status.pets, a:idx)
+        call pets#main#log(printf('failed to set pet subopt: %d', a:idx))
+        return -1
+    endif
+    let s:pets_status.pets[a:idx][a:opt1][a:opt2] = a:val
+endfunction
+
+function! pets#main#set_ball_opt(opt, val) abort
+    let s:pets_status.ball[a:opt] = a:val
+endfunction
+
+function! pets#main#set_ball_subopt(opt1, opt2, val) abort
+    let s:pets_status.ball[a:opt1][a:opt2] = a:val
+endfunction
+
+function! pets#main#rm_config(key) abort
+    call remove(s:pets_status, a:key)
+endfunction
+
+function! pets#main#rm_pets(idx)
+    if !has_key(s:pets_status.pets, a:idx)
+        call pets#main#log(printf('%d is already removed', a:idx))
+        return -1
+    endif
+    call remove(s:pets_status.pets, a:idx)
+endfunction
+
+function! pets#main#rm_pets_opt(idx, opt)
+    if !has_key(s:pets_status.pets, a:idx)
+        call pets#main#log(printf('%d is already removed (opt)', a:idx))
+        return -1
+    endif
+    call remove(s:pets_status.pets[a:idx], a:opt)
+endfunction
+
+function! pets#main#rm_pets_subopt(idx, opt1, opt2)
+    if !has_key(s:pets_status.pets, a:idx)
+        call pets#main#log(printf('%d is already removed (subopt)', a:idx))
+        return -1
+    endif
+    call remove(s:pets_status.pets[a:idx][a:opt1], a:opt2)
 endfunction
 
 function! pets#main#float(
@@ -198,10 +231,12 @@ function! pets#main#float(
 endfunction
 
 function! pets#main#close_float(pid) abort
-    if win_id2tabwin(a:pid) != [0, 0]
-        if has('popupwin')
+    if has('popupwin')
+        if match(popup_list(), printf("^%d$", a:pid)) != -1
             call popup_close(a:pid)
-        elseif has('nvim')
+        endif
+    elseif has('nvim')
+        if win_id2tabwin(a:pid) != [0, 0]
             call nvim_win_close(a:pid, v:false)
         endif
     endif
@@ -261,6 +296,24 @@ function! pets#main#echo_msg(msg) abort
     let time = strftime('[%b-%d %H:%M:%S]  ')
     call add(s:pets_status.messages, time..a:msg)
     echo a:msg
+endfunction
+
+function! pets#main#log(msg) abort
+    if !has_key(s:pets_status, 'log')
+        let s:pets_status.log = []
+    endif
+    let time = strftime('[%b-%d %H:%M:%S]  ')
+    call add(s:pets_status.log, time..a:msg)
+endfunction
+
+function! pets#main#showlog() abort
+    if !has_key(s:pets_status, 'log')
+        echo 'no log messages'
+        return
+    endif
+    for msg in s:pets_status.log
+        echo msg
+    endfor
 endfunction
 
 function! pets#main#create_garden() abort
