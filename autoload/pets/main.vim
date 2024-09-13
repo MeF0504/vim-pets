@@ -101,7 +101,8 @@ endfunction
 
 function! pets#main#set_pets_opt(idx, opt, val) abort
     if !has_key(s:pets_status.pets, a:idx)
-        call pets#main#log(printf('failed to set pet opt: %d', a:idx))
+        call pets#main#log(printf('failed to set pet opt: %d, %s, %s',
+                    \ a:idx, opt, execute('echo a:val')))
         return -1
     endif
     let s:pets_status.pets[a:idx][a:opt] = a:val
@@ -109,7 +110,8 @@ endfunction
 
 function! pets#main#set_pets_subopt(idx, opt1, opt2, val) abort
     if !has_key(s:pets_status.pets, a:idx)
-        call pets#main#log(printf('failed to set pet subopt: %d', a:idx))
+        call pets#main#log(printf('failed to set pet subopt: %d, %s, %s',
+                    \ a:idx, a:opt1, execute('echo a:val')))
         return -1
     endif
     let s:pets_status.pets[a:idx][a:opt1][a:opt2] = a:val
@@ -137,7 +139,7 @@ endfunction
 
 function! pets#main#rm_pets_opt(idx, opt)
     if !has_key(s:pets_status.pets, a:idx)
-        call pets#main#log(printf('%d is already removed (opt)', a:idx))
+        call pets#main#log(printf('%d is already removed (opt:%s)', a:idx, a:opt))
         return -1
     endif
     call remove(s:pets_status.pets[a:idx], a:opt)
@@ -145,7 +147,7 @@ endfunction
 
 function! pets#main#rm_pets_subopt(idx, opt1, opt2)
     if !has_key(s:pets_status.pets, a:idx)
-        call pets#main#log(printf('%d is already removed (subopt)', a:idx))
+        call pets#main#log(printf('%d is already removed (subopt:%s)', a:idx, a:opt))
         return -1
     endif
     call remove(s:pets_status.pets[a:idx][a:opt1], a:opt2)

@@ -24,6 +24,7 @@ function! pets#nicknames#getnick(name)
         endif
     else
         let s:name_cnt[a:name] = {}
+        let s:name_cnt[a:name][nick] = 0
     endif
     return nick
 endfunction

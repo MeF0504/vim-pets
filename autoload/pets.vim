@@ -100,8 +100,9 @@ function! pets#put_pet(name, ...) abort
         let nick = a:1
     endif
 
-    call call(printf('pets#%s#put_pets', pets#main#get_config('type')),
+    let idx = call(printf('pets#%s#put_pets', pets#main#get_config('type')),
                 \ [a:name, nick])
+    return idx
 endfunction
 
 function! pets#leave_pet(type, ...) abort
@@ -122,7 +123,7 @@ endfunction
 function! pets#close()
     " clear pets
     let pets = pets#main#get_config('pets')
-    if !(pets is v:null)
+    if pets isnot v:null
         for idx in keys(pets)
             call pets#leave_pet('close', idx)
         endfor
@@ -134,24 +135,29 @@ function! pets#close()
 
     " clear garden
     let garden = pets#main#get_config('garden')
-    if !(garden is v:null)
+    if garden isnot v:null
         let pid = garden.winID
         call pets#main#close_float(pid)
         call pets#main#rm_config('garden')
     endif
 
     " clear messages
-    if !(pets#main#get_config('messages') is v:null)
+    if pets#main#get_config('messages') isnot v:null
         call pets#main#rm_config('messages')
     endif
 
+    " clear log
+    if pets#main#get_config('log') isnot v:null
+        call pets#main#rm_config('log')
+    endif
+
     " clear index
-    if !(pets#main#get_config('idx') is v:null)
+    if pets#main#get_config('idx') isnot v:null
         call pets#main#rm_config('idx')
     endif
 
     " clear world's name
-    if !(pets#main#get_config('world') is v:null)
+    if pets#main#get_config('world') isnot v:null
         call pets#main#rm_config('world')
     endif
 endfunction
