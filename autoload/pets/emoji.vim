@@ -158,6 +158,10 @@ function! <SID>pets_cb(index, timer_id) abort
                 call pets#main#set_pets_subopt(idx, 'friends', child_idx, localtime())
                 call pets#main#set_pets_subopt(child_idx, 'friends', a:index, localtime())
                 call pets#main#set_pets_subopt(child_idx, 'friends', idx, localtime())
+                call pets#main#set_pets_opt(child_idx, 'parents', [
+                            \ pets#main#get_pet(a:index)['nickname'],
+                            \ pets#main#get_pet(idx)['nickname'],
+                            \ ])
                 call pets#main#echo_msg(printf('message: %s(%s) is born!', opt.name, new_name))
             endif
         else
@@ -235,6 +239,7 @@ function! pets#emoji#put_pets(name, nick)
                 \ 'friends': {},
                 \ 'partner': -1,
                 \ 'children': 0,
+                \ 'parents': v:null,
                 \ 'nick_buffer': nbid,
                 \ 'nick_winID': npid,
                 \ }
