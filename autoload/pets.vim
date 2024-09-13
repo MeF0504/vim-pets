@@ -156,6 +156,11 @@ function! pets#close()
         call pets#main#rm_config('idx')
     endif
 
+    " clear type
+    if pets#main#get_config('type') isnot v:null
+        call pets#main#rm_config('type')
+    endif
+
     " clear world's name
     if pets#main#get_config('world') isnot v:null
         call pets#main#rm_config('world')
