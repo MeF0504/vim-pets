@@ -22,8 +22,6 @@ function pets#image#display_sixel(path, lnum, cnum) abort
   call s:echoraw("\x1b[u")
 endfunction
 
-" call pets#image#display_sixel('autoload/pets/themes/test_img/mef0504_0.jpg', 5, 10)
-
 function! s:redraw_cb(index, timer_id) abort
     let opt = pets#main#get_pet(a:index)
     if opt is v:null
