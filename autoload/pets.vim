@@ -141,6 +141,11 @@ function! pets#close()
         call pets#main#rm_config('garden')
     endif
 
+    " clear image info
+    if pets#main#get_config('type') == 'image'
+        cal pets#image#clear_iminfo()
+    endif
+
     " clear messages
     if pets#main#get_config('messages') isnot v:null
         call pets#main#rm_config('messages')
