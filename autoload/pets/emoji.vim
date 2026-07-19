@@ -185,12 +185,12 @@ function! pets#emoji#put_pets(name, nick)
     let w = wran[0]+rand()%(wran[1]-wran[0])
     let hran = garden.hrange
     let h = hran[0]+rand()%(hran[1]-hran[0])
-    let [bid, pid] = pets#main#float(img, h, w, 'Normal', 49, 'botright', 2, 1, 0)
+    let [bid, pid] = pets#main#float(img, h, w, 'Normal', 49, 'botright', 2, 1, 0, v:null)
     let idx = pets#main#get_config('idx')
     call pets#main#set_config('idx', idx+1)
     if garden.shownn
         let [nbid, npid] = pets#main#float(printf("%s", a:nick), h-1, w,
-                    \ 'Normal', 49, 'botright', len(a:nick)+1, 1, 0)
+                    \ 'Normal', 49, 'botright', len(a:nick)+1, 1, 0, v:null)
     else
         let nbid = -1
         let npid = -1
@@ -382,7 +382,7 @@ function! pets#emoji#throw_ball() abort
         let w = wran[1]-1
         let h = hran[1]+(hran[0]-hran[1])/3
     endif
-    let [bid, pid] = pets#main#float(img, h, w, 'Normal', 49, 'botright', 2, 1, 0)
+    let [bid, pid] = pets#main#float(img, h, w, 'Normal', 49, 'botright', 2, 1, 0, v:null)
     " 時間間隔は1秒の約数じゃないほうが良さそう
     let tid = timer_start(400, function(expand('<SID>').'ball_cb', [start_point]), {'repeat':-1})
 

@@ -127,6 +127,13 @@ Set the position of the garden. This list contains three parameters,
 	parameters of the {config} of |nvim_open_win|. The position argument is
 	converted to fit "anchor" argument.
 
+g:pets#themes#<world>#img_height                      *g:pets#themes#img_height*
+	type: |Number| or |v:null|                               *g:pets_img_height*
+	default: v:null
+
+Set the height of the images in the <world>.
+If `g:pets_img_height` exists, this vaule is used as default.
+
 ==============================================================================
 EXTENSION                                                       *pets-extension*
 

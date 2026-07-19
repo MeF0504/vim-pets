@@ -157,6 +157,7 @@ function! pets#main#float(
             \ text, line, col,
             \ highlight, zindex,
             \ pos, width, height, border,
+            \ image,
             \ ) abort
     let pid = 0
     let bid = 0
@@ -169,6 +170,14 @@ function! pets#main#float(
         let tabnr = s:pets_status.garden.tab
     else
         let tabnr = 0  " current tab
+    endif
+
+    if a:image != v:null
+        let [data, imwidth, imheight] = a:image
+        let im_config = #{data: data->list2blob(),
+                    \ width: imwidth, height: imheight}
+    else
+        let im_config = v:null
     endif
 
     if has('popupwin')
@@ -192,6 +201,7 @@ function! pets#main#float(
                     \ 'pos': a:pos,
                     \ 'border': border,
                     \ 'tabpage': tabnr,
+                    \ 'image': im_config,
                     \ }
         let pid = popup_create(text, popup_option)
 
@@ -348,7 +358,7 @@ function! pets#main#create_garden() abort
     endif
 
      let [bid, pid] = pets#main#float(bg, pos[0], pos[1], 'Normal', 48,
-                \ pos[2], width, height, 1)
+                \ pos[2], width, height, 1, v:null)
      call win_execute(pid, printf('call %sbg_setting()', expand('<SID>')))
 
     if pos[2][-4:] == 'left'
