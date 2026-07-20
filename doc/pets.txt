@@ -87,6 +87,12 @@ g:pets_default_pet                                          *g:pets_default_pet*
 The {pet-type} joinning when |:Pets| command is called without specify the
 pet name.
 
+---
+The following variables are used globally, and if variables with "pets_"
+replaced by "pets#themes#<world>#" are defined, these variables are used as
+world-specified values.
+---
+
 g:pets_lifetime_enable                                  *g:pets_lifetime_enable*
 	type: |Number|
 	default: 1
@@ -127,12 +133,12 @@ Set the position of the garden. This list contains three parameters,
 	parameters of the {config} of |nvim_open_win|. The position argument is
 	converted to fit "anchor" argument.
 
-g:pets#themes#<world>#img_height                      *g:pets#themes#img_height*
-	type: |Number| or |v:null|                               *g:pets_img_height*
+g:pets_img_height                                     *g:pets#themes#img_height*
+	type: |Number| or |v:null|
 	default: v:null
 
-Set the height of the images in the <world>.
-If `g:pets_img_height` exists, this vaule is used as default.
+Set the height (pixel) of the images in the <world>.
+This value is only used to display image file.
 
 ==============================================================================
 EXTENSION                                                       *pets-extension*
