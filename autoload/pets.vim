@@ -63,6 +63,10 @@ function! pets#pets(...) abort
             break
         endif
     endfor
+    if type_name == 'image' && !has('image')
+        call pets#main#echo_err("+image is required to display image file.")
+        return
+    endif
     if pets#main#get_config('world') is v:null
         call pets#main#echo_err("incorrect pets's name.")
         return

@@ -11,6 +11,7 @@ if !exists('*rand')
     finish
 endif
 if !has('popupwin') && !has('nvim')
+    echoerr 'popup/floating window support is required.'
     finish
 endif
 
