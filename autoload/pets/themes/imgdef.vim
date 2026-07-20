@@ -9,6 +9,7 @@ let s:pets = {
                           \ r: expand('<sfile>:h')..'/imgdef/rabbit_r.png'},
             \ }
 let pets#themes#imgdef#type = 'image'
+let g:pets#themes#imgdef#ball_image = get(g:, "pets#themes#imgdef#ball_image", expand('<sfile>:h')..'/imgdef/ball.png')
 
 function! pets#themes#imgdef#get_pet(name) abort
     if !has_key(s:pets, a:name)
@@ -26,6 +27,21 @@ function! pets#themes#imgdef#get_pet_names() abort
 endfunction
 
 function! pets#themes#imgdef#get_bg() abort
-    return [' ']
+    let bg = [
+                \ "w ",
+                \ " w",
+            \ ]
+    return bg
 endfunction
 
+function! pets#themes#imgdef#bg_setting() abort
+    highlight PetsGardenBG1 ctermfg=220 ctermbg=None guifg=#f0c050 guibg=NONE
+    highlight PetsGardenBG2 ctermfg=172 ctermbg=None guifg=#e38a20 guibg=NONE
+    for l in range(1, line('$'))
+        if l%2
+            call matchaddpos('PetsGardenBG1', [l])
+        else
+            call matchaddpos('PetsGardenBG2', [l])
+        endif
+    endfor
+endfunction

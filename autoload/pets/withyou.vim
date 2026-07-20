@@ -65,10 +65,13 @@ function! pets#withyou#main(name) abort
     if empty(world)
         return
     endif
+    if get(g:, printf('pets#themes#%s#type', world), "") != 'emoji'
+        call pets#main#echo_err('pets (image) is not supported.')
+        return
+    endif
     let img = eval(printf('pets#themes#%s#get_pet("%s")', world, a:name))
     let [bid, pid] = s:float_cursor_open(img, s:count)
     let tid = timer_start(100, function(expand('<SID>').'cursor_cb', [pid, s:count]), {'repeat':-1})
-
 
     if empty(s:withu_status)
         augroup PetsWithYou

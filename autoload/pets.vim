@@ -58,12 +58,7 @@ function! pets#pets(...) abort
         endtry
         if match(pet_names, printf('^%s$', name)) != -1
             call pets#main#set_config('world', wld)
-            let type_var = printf('g:pets#themes#%s#type', wld)
-            if exists(type_var)
-                let type_name = eval(type_var)
-            else
-                let type_name = 'emoji'
-            endif
+            let type_name = get(g:, printf('pets#themes#%s#type', wld), 'emoji')
             call pets#main#set_config('type', type_name)
             break
         endif
@@ -100,8 +95,7 @@ function! pets#put_pet(name, ...) abort
         let nick = a:1
     endif
 
-    let idx = call(printf('pets#%s#put_pets', pets#main#get_config('type')),
-                \ [a:name, nick])
+    let idx = pets#main#put_pets(a:name, nick)
     return idx
 endfunction
 
@@ -116,8 +110,7 @@ function! pets#leave_pet(type, ...) abort
     if index == -1
         return
     endif
-    call call(printf('pets#%s#leave_pet', pets#main#get_config('type')),
-                \ [a:type, index])
+    call pets#main#leave_pet(a:type, index)
 endfunction
 
 function! pets#close()
@@ -187,7 +180,7 @@ function! pets#throw_ball() abort
         return
     endif
 
-    call call(printf('pets#%s#throw_ball', pets#main#get_config('type')), [])
+    call pets#main#throw_ball()
 endfunction
 
 function! pets#message_log() abort
