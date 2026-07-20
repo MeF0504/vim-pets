@@ -12,10 +12,7 @@ function! pets#image#set_data(img_pathes, world, name) abort
         return
     endif
 
-    let h = get(g:, 'pets#themes#'..a:world..'#img_height', v:null)
-    if h is v:null
-        let h = get(g:, 'pets_img_height', v:null)
-    endif
+    let h = pets#main#get_config('garden')['image_height']
     let res = {}
 
     if a:name == 'ball'

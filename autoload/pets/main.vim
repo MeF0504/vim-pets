@@ -345,6 +345,7 @@ function! pets#main#create_garden() abort
         let def_ball = nr2char(0x26bd)
     endif
     let bimg = s:get_config('ball_image', def_ball)
+    let img_height = s:get_config('img_height', v:null)
 
     if pos[2][:2] == 'bot'
         let cur_h = pos[0]
@@ -402,6 +403,7 @@ function! pets#main#create_garden() abort
                 \ 'max_pets': s:max_pets,
                 \ 'shownn': shownn,
                 \ 'ball_image': bimg,
+                \ 'image_height': img_height,
                 \ }
     return v:true
 endfunction
