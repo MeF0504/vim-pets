@@ -6,6 +6,7 @@ let s:friend_time = 30 " sec
 let s:lifetime = 10*60 " sec
 let s:ball_max_count = 12  " 12*400/1000 sec
 let s:friend_sep = 3
+let s:curdir = expand('<sfile>:h')
 
 " check status
 function! pets#main#status() abort
@@ -340,7 +341,7 @@ function! pets#main#create_garden() abort
     let birth_enable = s:get_config('birth_enable', 1)
     let shownn = get(g:, 'pets_shownn', v:false)
     if pets#main#get_config('type') == 'image'
-        let def_ball = expand('<sfile>:h')..'/themes/imgdef/ball.png'
+        let def_ball = s:curdir..'/themes/imgdef/ball.png'
     else
         let def_ball = nr2char(0x26bd)
     endif
@@ -853,7 +854,7 @@ function! pets#main#throw_ball() abort
     else
         let showim = ""
         if !filereadable(img)
-            call pets#main#echo_err(printf('file %s does not exist!', ip))
+            call pets#main#echo_err(printf('file %s does not exist!', img))
             return -1
         endif
         let showim = ""
