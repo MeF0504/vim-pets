@@ -77,8 +77,8 @@ Clear all pets around the cursor.
 ==============================================================================
 OPTIONS                                                           *pets-options*
 
-These settings may overwrriten in the extension plugins. Also see
-|pets-extension|.
+Some of the following settings are overwritten in the extension plugins.
+Also see |pets-extension|.
 
 g:pets_default_pet                                          *g:pets_default_pet*
 	type: |String|
@@ -86,12 +86,6 @@ g:pets_default_pet                                          *g:pets_default_pet*
 
 The {pet-type} joinning when |:Pets| command is called without specify the
 pet name.
-
----
-The following variables are used globally, and if variables with "pets_"
-replaced by "pets#themes#<world>#" are defined, these variables are used as
-world-specified values.
----
 
 g:pets_lifetime_enable                                  *g:pets_lifetime_enable*
 	type: |Number|
@@ -166,6 +160,7 @@ autoload/pets/{world-name}.vim~
                     *pets-extension-lifetime_enable* *pets-extension-birth_enable*
                       *pets-extension-garden_width* *pets-extension-garden_height*
                            *pets-extension-garden_pos* *pets-extension-ball_image*
+                                                     *pets-extension-img_height*
 This file contains follow functions and option-values.
 	* function `pets#{world-name}#get_pet()`
 		* input: {pets-type}
@@ -211,6 +206,9 @@ This file contains follow functions and option-values.
 	* value `pets#{world-name}#ball_image` (optional)
 		* type: character
 		This option value specify the image of the thrown ball.
+	* value `pets#{world-name}#img_height` (optional)
+		* type: character
+		This option value set the world-specified |g:pets_img_height|.
 
 ==============================================================================
 LICENSE                                                           *pets-license*
