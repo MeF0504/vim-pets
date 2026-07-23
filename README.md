@@ -4,12 +4,17 @@ Put small animals in your text editor.
 (As you know, this plugin is strongly inspired by [vscode-pets](https://marketplace.visualstudio.com/items?itemName=tonybaloney.vscode-pets))
 
 **Pets**  
-<img src=images/vi-pets.gif width="70%">
+<img src=images/vim-pets.gif width="70%">
 
 **PetsWithYou**  
-<img src=images/vi-petswithyou.gif width="70%">
+<img src=images/vim-petswithyou.gif width="70%">
 
-extension pack sample -> [vim-pets-ocean](https://github.com/MeF0504/vim-pets-ocean)
+**Pets (image)**  
+<img src=images/vim-pets-image.gif width="70%">
+
+extension pack sample:
+- [vim-pets-ocean](https://github.com/MeF0504/vim-pets-ocean)
+- [vim-pets-dino]()
 
 ## Usage
 
@@ -65,6 +70,20 @@ echo has('popupwin') "=1
 echo has('nvim') "=1
 ```
 
+### To put pets of image files...
+
+NOTE: currently this function works only Vim.
+
+- `image`
+```vim
+echo has('image') "=1
+```
+
+- `python3` support and [Pillow](https://pillow.readthedocs.io/en/stable/) package.
+```vim
+echo has('python3') "=1
+```
+
 ## Installation
 
 For [vim-plug](https://github.com/junegunn/vim-plug) plugin manager:
@@ -86,16 +105,7 @@ Plug 'MeF0504/vim-pets'
     - In Neovim, these values are assigned to the `row`, `col`, and `anchor` parameters of nvim_open_win-config.
     The position argument is converted to fit the `nvim_open_win` function.
     - default: [&lines-&cmdheight-1, &columns-1, 'botright']
-
-## Future Contents
-* Plan to support showing image files
-* [sample](images/vi-pets_image.gif)
-
-NOTE: This is a very challenging function.
-This is still limited and not stable.
-### Requirements
-* [libsixel](https://github.com/libsixel/libsixel) supported terminal emulator.
-* img2sixel command
+- `g:pets_img_height` (number or v:null): Set the height (pixel) of the images. This value is only used to display image file.
 
 
 ## License

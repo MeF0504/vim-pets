@@ -131,7 +131,7 @@ g:pets_img_height                                     *g:pets#themes#img_height*
 	type: |Number| or |v:null|
 	default: v:null
 
-Set the height (pixel) of the images in the <world>.
+Set the height (pixel) of the images.
 This value is only used to display image file.
 
 ==============================================================================
