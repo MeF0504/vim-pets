@@ -13,8 +13,8 @@ Put small animals in your text editor.
 <img src=images/vim-pets-image.gif width="70%">
 
 extension pack sample:
-- [vim-pets-ocean](https://github.com/MeF0504/vim-pets-ocean)
-- [vim-pets-dino]()
+- [vim-pets-ocean](https://github.com/MeF0504/vim-pets-ocean) (emoji)
+- [vim-pets-dino](https://github.com/MeF0504/vim-pets-dino) (image)
 
 ## Usage
 
