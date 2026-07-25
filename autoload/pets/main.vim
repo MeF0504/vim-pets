@@ -373,7 +373,7 @@ function! pets#main#create_garden() abort
         let l = r-width
     else
         call pets#main#echo_err(printf('incorrect pos setting: %s.', pos[2]))
-        return
+        return v:false
     endif
     let wran = [l+1, r-1]
 
@@ -385,7 +385,7 @@ function! pets#main#create_garden() abort
         let t = b-height
     else
         call pets#main#echo_err(printf('incorrect pos setting: %s.', pos[2]))
-        return
+        return v:false
     endif
     let hran = [t+1, b-1]
 
