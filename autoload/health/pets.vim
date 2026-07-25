@@ -49,11 +49,24 @@ function! health#pets#check() abort
             call s:report_error('popup window is not available.')
         endif
     endif
-    " check sixel
-    if executable('img2sixel')
-        call s:report_ok('img2sixel is executable.')
+    " check image support
+    let im_sup = v:true
+    if has('nvim')
+        " image is not support yet.
     else
-        call s:report_warn('img2sixel is not executable. Showing image mode is not available.')
+        if !has('image')
+            call s:report_warn('+image is not supported.')
+            let im_sup = v:false
+        endif
+        if !has('python3')
+            call s:report_warn('python3 is not supported.')
+            let im_sup = v:false
+        endif
+        if im_sup
+            call s:report_ok('image type is available.')
+        else
+            s:report_warn('image type is not available.')
+        endif
     endif
 endfunction
 
