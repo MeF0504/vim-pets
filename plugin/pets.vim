@@ -11,6 +11,7 @@ if !exists('*rand')
     finish
 endif
 if !has('popupwin') && !has('nvim')
+    echoerr 'popup/floating window support is required.'
     finish
 endif
 
@@ -19,7 +20,7 @@ set cpo&vim
 
 let g:pets_worlds = get(g:, 'pets_worlds', [])
 call add(g:pets_worlds, 'default')
-call add(g:pets_worlds, 'test_img')
+call add(g:pets_worlds, 'imgdef')
 
 function! s:pets_get_names(arglead, cmdline, cursorpos) abort
     let names = pets#get_all_pet_names()

@@ -58,16 +58,21 @@ function! pets#pets(...) abort
         endtry
         if match(pet_names, printf('^%s$', name)) != -1
             call pets#main#set_config('world', wld)
-            let type_var = printf('g:pets#themes#%s#type', wld)
-            if exists(type_var)
-                let type_name = eval(type_var)
-            else
-                let type_name = 'emoji'
-            endif
+            let type_name = get(g:, printf('pets#themes#%s#type', wld), 'emoji')
             call pets#main#set_config('type', type_name)
             break
         endif
     endfor
+    if type_name == 'image'
+        if !has('image')
+            call pets#main#echo_err("+image is required to display image file.")
+            return
+        endif
+        if !has('python3')
+            call pets#main#echo_err("python3 support is required to display image file.")
+            return
+        endif
+    endif
     if pets#main#get_config('world') is v:null
         call pets#main#echo_err("incorrect pets's name.")
         return
@@ -100,8 +105,7 @@ function! pets#put_pet(name, ...) abort
         let nick = a:1
     endif
 
-    let idx = call(printf('pets#%s#put_pets', pets#main#get_config('type')),
-                \ [a:name, nick])
+    let idx = pets#main#put_pets(a:name, nick)
     return idx
 endfunction
 
@@ -116,8 +120,7 @@ function! pets#leave_pet(type, ...) abort
     if index == -1
         return
     endif
-    call call(printf('pets#%s#leave_pet', pets#main#get_config('type')),
-                \ [a:type, index])
+    call pets#main#leave_pet(a:type, index)
 endfunction
 
 function! pets#close()
@@ -139,6 +142,11 @@ function! pets#close()
         let pid = garden.winID
         call pets#main#close_float(pid)
         call pets#main#rm_config('garden')
+    endif
+
+    " clear image info
+    if pets#main#get_config('type') == 'image'
+        cal pets#image#clear_iminfo()
     endif
 
     " clear messages
@@ -182,7 +190,7 @@ function! pets#throw_ball() abort
         return
     endif
 
-    call call(printf('pets#%s#throw_ball', pets#main#get_config('type')), [])
+    call pets#main#throw_ball()
 endfunction
 
 function! pets#message_log() abort

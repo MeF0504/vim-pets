@@ -77,8 +77,8 @@ Clear all pets around the cursor.
 ==============================================================================
 OPTIONS                                                           *pets-options*
 
-These settings may overwrriten in the extension plugins. Also see
-|pets-extension|.
+Some of the following settings are overwritten in the extension plugins.
+Also see |pets-extension|.
 
 g:pets_default_pet                                          *g:pets_default_pet*
 	type: |String|
@@ -127,6 +127,13 @@ Set the position of the garden. This list contains three parameters,
 	parameters of the {config} of |nvim_open_win|. The position argument is
 	converted to fit "anchor" argument.
 
+g:pets_img_height                                     *g:pets#themes#img_height*
+	type: |Number| or |v:null|
+	default: v:null
+
+Set the height (pixel) of the images.
+This value is only used to display image file.
+
 ==============================================================================
 EXTENSION                                                       *pets-extension*
 
@@ -153,6 +160,7 @@ autoload/pets/{world-name}.vim~
                     *pets-extension-lifetime_enable* *pets-extension-birth_enable*
                       *pets-extension-garden_width* *pets-extension-garden_height*
                            *pets-extension-garden_pos* *pets-extension-ball_image*
+                                                     *pets-extension-img_height*
 This file contains follow functions and option-values.
 	* function `pets#{world-name}#get_pet()`
 		* input: {pets-type}
@@ -198,6 +206,9 @@ This file contains follow functions and option-values.
 	* value `pets#{world-name}#ball_image` (optional)
 		* type: character
 		This option value specify the image of the thrown ball.
+	* value `pets#{world-name}#img_height` (optional)
+		* type: character
+		This option value set the world-specified |g:pets_img_height|.
 
 ==============================================================================
 LICENSE                                                           *pets-license*
