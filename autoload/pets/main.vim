@@ -862,7 +862,7 @@ function! pets#main#throw_ball() abort
         let iminfo = pets#image#get_iminfo(world, 'ball')
         let iminfo = [iminfo.data, iminfo.width, iminfo.height]
     endif
-    let [bid, pid] = pets#main#float(img, h, w, 'Normal', 49, 'botright',
+    let [bid, pid] = pets#main#float(showim, h, w, 'Normal', 49, 'botright',
                 \ 2, 1, 0, iminfo)
     " 時間間隔は1秒の約数じゃないほうが良さそう
     let tid = timer_start(400, function(expand('<SID>').'ball_cb', [start_point]), {'repeat':-1})

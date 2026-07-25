@@ -16,7 +16,9 @@ function! pets#image#set_data(img_pathes, world, name) abort
     let res = {}
 
     if a:name == 'ball'
-        let h = float2nr(h/1.5)
+        if h isnot v:null
+            let h = float2nr(h/1.5)
+        endif
         let fname = fnamemodify(a:img_pathes, ':t:r')
         python3 convert_image(vim.eval('a:img_pathes'), vim.eval('h'))
         let res['data'] = eval(printf('pets#image#%s_data', fname))
