@@ -61,11 +61,39 @@ function! health#pets#check() abort
         if !has('python3')
             call s:report_warn('python3 is not supported.')
             let im_sup = v:false
+        else
+            let res = ''
+            try
+                python3 << EOF
+from importlib import metadata
+res = False
+for dst in metadata.distributions():
+    if dst.metadata['Name'] == "pillow":
+        res = True
+        break
+EOF
+                let res = execute(':python3 print(res)')
+                let res = res->substitute("\n", '', 'g')
+            catch
+                call s:report_warn('Failed to check modules.')
+                let im_sup = v:false
+            endtry
+            if empty(res)
+                " failed to run python script?
+            elseif res == 'True'
+                call s:report_ok('Pillow (PIL) is found.')
+            elseif res == 'False'
+                call s:report_warn('Pillow (PIL) is not installed.')
+                let im_sup = v:false
+            else
+                call s:report_error('Something wrong... '..res)
+                let im_sup = v:false
+            endif
         endif
         if im_sup
             call s:report_ok('image type is available.')
         else
-            s:report_warn('image type is not available.')
+            call s:report_warn('image type is not available.')
         endif
     endif
 endfunction
