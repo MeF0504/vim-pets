@@ -49,6 +49,7 @@ function! pets#pets(...) abort
         call pets#main#echo_err('garden is already created.')
         return
     endif
+    let type_name = v:null
     for wld in g:pets_worlds
         let func_name = printf('pets#themes#%s#get_pet_names()', wld)
         try
@@ -63,6 +64,10 @@ function! pets#pets(...) abort
             break
         endif
     endfor
+    if type_name is v:null
+        call pets#main#echo_err(name..' is not found in worlds.')
+        return
+    endif
     if type_name == 'image'
         if !has('image')
             call pets#main#echo_err("+image is required to display image file.")
