@@ -90,6 +90,7 @@ function! pets#pets(...) abort
             let nick = pets#nicknames#getnick(name)
         endif
         call pets#put_pet(name, nick)
+        call pets#main#set_timer()
     endif
     autocmd TabClosed <buffer> ++once call pets#close()
 endfunction
@@ -144,6 +145,7 @@ function! pets#close()
     " clear garden
     let garden = pets#main#get_config('garden')
     if garden isnot v:null
+        call timer_stop(garden.timerID)
         let pid = garden.winID
         call pets#main#close_float(pid)
         call pets#main#rm_config('garden')

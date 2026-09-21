@@ -5,6 +5,7 @@ import os.path as op
 import vim
 from PIL import Image
 
+
 def convert_image(path: str, height: str | None):
     # なんかvim.eval で渡された整数はstrになっちゃう？
     name = op.splitext(op.basename(path))[0]
