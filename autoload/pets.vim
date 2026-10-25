@@ -40,15 +40,20 @@ endfunction
 
 " main functions
 function! pets#pets(...) abort
+    " get first pet
     if !empty(a:000)
         let name = a:1
     else
         let name = get(g:, 'pets_default_pet', 'dog')
     endif
+
+    " check garden already exists.
     if !(pets#main#get_config('garden') is v:null)
         call pets#main#echo_err('garden is already created.')
         return
     endif
+
+    " set world, type (emoji/image)
     let type_name = v:null
     for wld in g:pets_worlds
         let func_name = printf('pets#themes#%s#get_pet_names()', wld)
@@ -82,6 +87,8 @@ function! pets#pets(...) abort
         call pets#main#echo_err("incorrect pets's name.")
         return
     endif
+
+    " create garden and put pets
     let res = pets#main#create_garden()
     if res
         if a:0 >= 2
