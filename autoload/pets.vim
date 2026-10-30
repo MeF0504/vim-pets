@@ -36,6 +36,25 @@ function! s:get_index(args)
     endif
     return index
 endfunction
+
+function! s:check_image_available() abort
+    if has('nvim')
+        if !luaeval('vim.ui ~= nil and vim.ui.img ~= nil')
+            call pets#main#echo_err('vim.ui.img is not supported.')
+            return v:false
+        endif
+    else
+        if !has('image')
+            call pets#main#echo_err("+image is required to display image file.")
+            return v:false
+        endif
+    endif
+    if !has('python3')
+        call pets#main#echo_err("python3 support is required to display image file.")
+        return v:false
+    endif
+    return v:true
+endfunction
 " }}}
 
 " main functions
@@ -74,12 +93,7 @@ function! pets#pets(...) abort
         return
     endif
     if type_name == 'image'
-        if !has('image')
-            call pets#main#echo_err("+image is required to display image file.")
-            return
-        endif
-        if !has('python3')
-            call pets#main#echo_err("python3 support is required to display image file.")
+        if !s:check_image_available()
             return
         endif
     endif
