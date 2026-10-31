@@ -126,6 +126,12 @@ function! pets#put_pet(name, ...) abort
         call pets#main#echo_err('garden is not here.')
         return -1
     endif
+    let world = pets#main#get_config('world')
+    let pet_names = eval(printf('pets#themes#%s#get_pet_names()', world))
+    if match(pet_names, printf('^%s$', a:name)) == -1
+        call pets#main#echo_err('incorrect pet name.')
+        return -1
+    endif
     if empty(a:000)
         let nick = pets#nicknames#getnick(a:name)
     else
