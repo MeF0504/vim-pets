@@ -242,9 +242,9 @@ function! pets#main#float(
             call win_execute(pid, "setlocal winhighlight=Normal:".a:highlight)
         else
             let h = s:pets_status.garden.image_height
-            let w = float2nr(h/2.0*im_config[1]/im_config[2])
+            let w = float2nr(h*2.0*im_config[1]/im_config[2])
             let pid = v:lua.require'vim-pets'.set_image(im_config[0],
-                        \ a:line, a:col, h, w)
+                        \ a:line, a:col, w, h)
         endif
     endif
 
@@ -356,7 +356,7 @@ function! pets#main#create_garden() abort
     endif
     let bimg = s:get_config('ball_image', def_ball)
     if has('nvim')
-        let def_imh = 2
+        let def_imh = 1
     else
         let def_imh = v:null
     endif
