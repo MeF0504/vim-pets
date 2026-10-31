@@ -37,22 +37,17 @@ def export_img_png(path: str, height: str | None):
     name = op.splitext(op.basename(path))[0]
     if TMPDIR is None:
         TMPDIR = TemporaryDirectory()
+    outpath = TMPDIR.name+f'/{name}.png'
     with Image.open(path) as img:
         w, h = img.size
-        if height is not None and h != int(height):
-            width = int(int(height)*w/h)
-            im2 = img.resize((width, int(height)))
-        else:
-            im2 = img
-    w, h = im2.size
-    outpath = TMPDIR.name+f'/{name}.png'
+        img.save(outpath)
     vim.command(f'let pets#image#{name}_h = {h}')
     vim.command(f'let pets#image#{name}_w = {w}')
     vim.command(f'let pets#image#{name}_path = "{outpath}"')
-    im2.save(outpath)
 
 
 def close_img_dir():
+    global TMPDIR
     if TMPDIR is not None:
         TMPDIR.cleanup()
         TMPDIR = None

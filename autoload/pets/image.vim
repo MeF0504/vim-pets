@@ -80,4 +80,5 @@ endfunction
 
 function! pets#image#clear_iminfo() abort
     let s:iminfo = {}
+    python3 close_img_dir()
 endfunction

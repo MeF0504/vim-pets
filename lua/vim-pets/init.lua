@@ -22,14 +22,21 @@ function M.update_image(path, pre_id, row, col)
     --     local arg0 = new_id
     -- end
     -- if new_id != pre_id then
-    --     vim.ui.img.del(pre_id)
+    local opt = vim.ui.img.get(pre_id)
+    opt.row = row
+    opt.col = col
+    vim.ui.img.del(pre_id)
     -- end
 
     -- vim.ui.img.set(path, opt)
     -- print(pre_id, row, col)
-    vim.ui.img.set(pre_id, {row=row, col=col})
-    -- vim.ui.img.set(vim.fn.readblob(path),
-    --     {row=row, col=col, width=2, height=1, zindex=50})
+    -- vim.ui.img.set(pre_id, {row=row, col=col})
+    local id = vim.ui.img.set(vim.fn.readblob(path), opt)
+    return id
+end
+
+function M.update_ball(id, row, col)
+    vim.ui.img.set(id, {row=row, col=col})
 end
 
 function M.close(id)

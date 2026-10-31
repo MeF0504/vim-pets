@@ -241,12 +241,10 @@ function! pets#main#float(
             let pid = nvim_open_win(bid, v:false, popup_option)
             call win_execute(pid, "setlocal winhighlight=Normal:".a:highlight)
         else
-            let h = 2
-            let w = h/2.0*im_config[1]/im_config[2]
-            " echomsg printf('%f, %f, %f, %f', h, w, im_config[1], im_config[2])
+            let h = s:pets_status.garden.image_height
+            let w = float2nr(h/2.0*im_config[1]/im_config[2])
             let pid = v:lua.require'vim-pets'.set_image(im_config[0],
                         \ a:line, a:col, h, w)
-                        " \ a:line, a:col, im_config[1], im_config[2])
         endif
     endif
 
@@ -357,7 +355,12 @@ function! pets#main#create_garden() abort
         let def_ball = nr2char(0x26bd)
     endif
     let bimg = s:get_config('ball_image', def_ball)
-    let img_height = s:get_config('img_height', v:null)
+    if has('nvim')
+        let def_imh = 2
+    else
+        let def_imh = v:null
+    endif
+    let img_height = s:get_config('img_height', def_imh)
 
     " check height
     if pos[2][:2] == 'bot'
@@ -504,34 +507,32 @@ function! s:pets_cb(timer_id) abort
 
         if type == 'emoji'
             let iminfo = v:null
-        elseif wnext == col
-            " 'image'
-            let iminfo = v:null
-        elseif wnext > col
-            " 'image'
-            let lr = 'r'
-            let ori_info = pets#image#get_iminfo(world, name)
-            if has('nvim')
-                let iminfo = [ori_info[lr]['path'], hnext, wnext,
-                            \ ori_info[lr]['width'], ori_info[lr]['height']]
-            else
-                let data = ori_info[lr]['data']->list2blob()
-                let imwidth = ori_info[lr]['width']
-                let imheight = ori_info[lr]['height']
-                let iminfo = #{data: data, width: imwidth, height: imheight}
-            endif
         else
             " 'image'
-            let lr = 'l'
             let ori_info = pets#image#get_iminfo(world, name)
             if has('nvim')
-                let iminfo = [ori_info[lr]['path'], hnext, wnext,
-                            \ ori_info[lr]['width'], ori_info[lr]['height']]
+                if wnext >= col
+                    let lr = 'r'
+                else
+                    let lr = 'l'
+                endif
+                let iminfo = ori_info[lr]['path']
             else
-                let data = ori_info[lr]['data']->list2blob()
-                let imwidth = ori_info[lr]['width']
-                let imheight = ori_info[lr]['height']
-                let iminfo = #{data: data, width: imwidth, height: imheight}
+                if wnext == col
+                    let iminfo = v:null
+                elseif wnext > col
+                    let lr = 'r'
+                    let data = ori_info[lr]['data']->list2blob()
+                    let imwidth = ori_info[lr]['width']
+                    let imheight = ori_info[lr]['height']
+                    let iminfo = #{data: data, width: imwidth, height: imheight}
+                else
+                    let lr = 'l'
+                    let data = ori_info[lr]['data']->list2blob()
+                    let imwidth = ori_info[lr]['width']
+                    let imheight = ori_info[lr]['height']
+                    let iminfo = #{data: data, width: imwidth, height: imheight}
+                endif
             endif
         endif
         call s:set_pets_opt(i, 'pos', [hnext, wnext])
@@ -547,8 +548,9 @@ function! s:pets_cb(timer_id) abort
                 call nvim_win_set_config(pid, {'relative': 'editor', 'col': wnext, 'row': hnext})
             else
                 " 'image'
-                call v:lua.require'vim-pets'.update_image(iminfo[0],
+                let pid = v:lua.require'vim-pets'.update_image(iminfo,
                             \ pid, hnext, wnext)
+                let pets[i]['winID'] = pid
             endif
             if garden.shownn
                 let npid = opt['nick_winID']
@@ -839,8 +841,7 @@ function! s:ball_cb(start_point, tid) abort
         " 'image'
         let ori_info = pets#image#get_iminfo(world, 'ball')
         if has('nvim')
-            let iminfo = [ori_info['path'], hnext, wnext,
-                        \ ori_info['width'], ori_info['height']]
+            let iminfo = ori_info['path']
         else
             let data = ori_info['data']->list2blob()
             let imwidth = ori_info['width']
@@ -853,7 +854,12 @@ function! s:ball_cb(start_point, tid) abort
     if has('popupwin')
         call popup_setoptions(pid, {'col': wnext, 'line': hnext, 'image': iminfo})
     elseif has('nvim')
-        call nvim_win_set_config(pid, {'relative': 'editor', 'col': wnext, 'row': hnext})
+        if type == 'emoji'
+            call nvim_win_set_config(pid, {'relative': 'editor', 'col': wnext, 'row': hnext})
+        else
+            " 'image'
+            call v:lua.require'vim-pets'.update_ball(pid, hnext, wnext)
+        endif
     endif
 endfunction
 
