@@ -1,37 +1,31 @@
 
 local M = {}
-M.ids = {}
+M.pathes = {}
 
 function M.set_image(path, row, col, width, height)
     local id = vim.ui.img.set(vim.fn.readblob(path),
         {row=row, col=col, width=width, height=height, zindex=50}
     )
-    M.ids[path] = id
+    M.pathes[id] = path
     return id
 end
 
 function M.update_image(path, pre_id, row, col)
-    -- new_id = M.ids[path]
-    -- if new_id == nil then
-    --     -- new image
-    --     local opt = vim.ui.img.get(pre_id)
-    --     local arg0 = path
-    -- else
-    --     -- image already exists
-    --     local opt = {row=row, col=col}
-    --     local arg0 = new_id
-    -- end
-    -- if new_id != pre_id then
-    local opt = vim.ui.img.get(pre_id)
-    opt.row = row
-    opt.col = col
-    vim.ui.img.del(pre_id)
-    -- end
-
-    -- vim.ui.img.set(path, opt)
-    -- print(pre_id, row, col)
-    -- vim.ui.img.set(pre_id, {row=row, col=col})
-    local id = vim.ui.img.set(vim.fn.readblob(path), opt)
+    if path == M.pathes[pre_id] then
+        -- the same image
+        opt = {row=row, col=col}
+        arg0 = pre_id
+    else
+        -- replace the image
+        opt = vim.ui.img.get(pre_id)
+        opt.row = row
+        opt.col = col
+        arg0 = vim.fn.readblob(path)
+        vim.ui.img.del(pre_id)
+        M.pathes[pre_id] = nil
+    end
+    local id = vim.ui.img.set(arg0, opt)
+    M.pathes[id] = path
     return id
 end
 
@@ -41,13 +35,14 @@ end
 
 function M.close(id)
     vim.ui.img.del(id)
+    M.pathes[id] = nil
 end
 
 function M.clear()
-    for key, val in pairs(M.ids) do
-        vim.ui.img.del(val)
+    for key, val in pairs(M.pathes) do
+        vim.ui.img.del(key)
     end
-    M.ids = {}
+    M.pathes = {}
 end
 
 return M
