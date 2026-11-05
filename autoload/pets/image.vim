@@ -4,7 +4,7 @@ let s:iminfo = {}
 
 py3file <sfile>:h/image.py
 
-function! pets#image#set_data(img_pathes, world, name) abort
+function! pets#image#set_data_vim(img_pathes, world, name) abort
     if !has_key(s:iminfo, a:world)
         let s:iminfo[a:world] = {}
     endif
@@ -39,10 +39,49 @@ function! pets#image#set_data(img_pathes, world, name) abort
     let s:iminfo[a:world][a:name] = res
 endfunction
 
+function! pets#image#set_data_nvim(img_pathes, world, name) abort
+    if !has_key(s:iminfo, a:world)
+        let s:iminfo[a:world] = {}
+    endif
+    if has_key(s:iminfo[a:world], a:name)
+        return
+    endif
+
+    let h = pets#main#get_config('garden')['image_height']
+    let res = {}
+
+    if a:name == 'ball'
+        if h isnot v:null
+            let h = float2nr(h/1.5)
+        endif
+        let fname = fnamemodify(a:img_pathes, ':t:r')
+        python3 export_img_png(vim.eval('a:img_pathes'), vim.eval('h'))
+        let res['path'] = eval(printf('pets#image#%s_path', fname))
+        let res['height'] = eval(printf('pets#image#%s_h', fname))
+        let res['width'] = eval(printf('pets#image#%s_w', fname))
+        let s:iminfo[a:world]['ball'] = res
+        return
+    endif
+
+    for lr in ['l', 'r']
+        let res[lr] = {}
+        let fname = fnamemodify(a:img_pathes[lr], ':t:r')
+        python3 export_img_png(vim.eval('a:img_pathes[lr]'), vim.eval('h'))
+        let res[lr]['path'] = eval(printf('pets#image#%s_path', fname))
+        let res[lr]['height'] = eval(printf('pets#image#%s_h', fname))
+        let res[lr]['width'] = eval(printf('pets#image#%s_w', fname))
+    endfor
+    let s:iminfo[a:world][a:name] = res
+endfunction
+
 function! pets#image#get_iminfo(world, name) abort
     return s:iminfo[a:world][a:name]
 endfunction
 
 function! pets#image#clear_iminfo() abort
     let s:iminfo = {}
+    python3 close_img_dir()
+    if has('nvim')
+        call v:lua.require'vim-pets'.clear()
+    endif
 endfunction

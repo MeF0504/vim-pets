@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import os.path as op
+from tempfile import TemporaryDirectory
 
 import vim
 from PIL import Image
@@ -25,3 +26,28 @@ def convert_image(path: str, height: str | None):
         vim.command(f'let pets#image#{name}_w = {w}')
         # vim.command(f'echomsg "pets#image#{name}_data"')
         # vim.command(f'echomsg pets#image#{name}_w')
+
+
+TMPDIR = None
+
+
+def export_img_png(path: str, height: str | None):
+    # 同上
+    global TMPDIR
+    name = op.splitext(op.basename(path))[0]
+    if TMPDIR is None:
+        TMPDIR = TemporaryDirectory()
+    outpath = TMPDIR.name+f'/{name}.png'
+    with Image.open(path) as img:
+        w, h = img.size
+        img.save(outpath)
+    vim.command(f'let pets#image#{name}_h = {h}')
+    vim.command(f'let pets#image#{name}_w = {w}')
+    vim.command(f'let pets#image#{name}_path = "{outpath}"')
+
+
+def close_img_dir():
+    global TMPDIR
+    if TMPDIR is not None:
+        TMPDIR.cleanup()
+        TMPDIR = None

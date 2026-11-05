@@ -36,19 +36,43 @@ function! s:get_index(args)
     endif
     return index
 endfunction
+
+function! s:check_image_available() abort
+    if has('nvim')
+        if !luaeval('vim.ui ~= nil and vim.ui.img ~= nil')
+            call pets#main#echo_err('vim.ui.img is not supported.')
+            return v:false
+        endif
+    else
+        if !has('image')
+            call pets#main#echo_err("+image is required to display image file.")
+            return v:false
+        endif
+    endif
+    if !has('python3')
+        call pets#main#echo_err("python3 support is required to display image file.")
+        return v:false
+    endif
+    return v:true
+endfunction
 " }}}
 
 " main functions
 function! pets#pets(...) abort
+    " get first pet
     if !empty(a:000)
         let name = a:1
     else
         let name = get(g:, 'pets_default_pet', 'dog')
     endif
+
+    " check garden already exists.
     if !(pets#main#get_config('garden') is v:null)
         call pets#main#echo_err('garden is already created.')
         return
     endif
+
+    " set world, type (emoji/image)
     let type_name = v:null
     for wld in g:pets_worlds
         let func_name = printf('pets#themes#%s#get_pet_names()', wld)
@@ -69,12 +93,7 @@ function! pets#pets(...) abort
         return
     endif
     if type_name == 'image'
-        if !has('image')
-            call pets#main#echo_err("+image is required to display image file.")
-            return
-        endif
-        if !has('python3')
-            call pets#main#echo_err("python3 support is required to display image file.")
+        if !s:check_image_available()
             return
         endif
     endif
@@ -82,6 +101,8 @@ function! pets#pets(...) abort
         call pets#main#echo_err("incorrect pets's name.")
         return
     endif
+
+    " create garden and put pets
     let res = pets#main#create_garden()
     if res
         if a:0 >= 2
@@ -103,6 +124,12 @@ function! pets#put_pet(name, ...) abort
     endif
     if has('nvim') && garden.tab != tabpagenr()
         call pets#main#echo_err('garden is not here.')
+        return -1
+    endif
+    let world = pets#main#get_config('world')
+    let pet_names = eval(printf('pets#themes#%s#get_pet_names()', world))
+    if match(pet_names, printf('^%s$', a:name)) == -1
+        call pets#main#echo_err('incorrect pet name.')
         return -1
     endif
     if empty(a:000)
