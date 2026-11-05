@@ -101,14 +101,6 @@ function! s:set_garden_opt(opt, val) abort
     let s:pets_status.garden[a:opt] = a:val
 endfunction
 
-" function! pets#main#get_pet(idx) abort
-"     if !has_key(s:pets_status.pets, a:idx)
-"         call pets#main#log(printf('failed to get pet: %d', a:idx))
-"         return v:null
-"     endif
-"     return s:pets_status.pets[a:idx]
-" endfunction
-
 function! s:set_pets_opt(idx, opt, val) abort
     if !has_key(s:pets_status.pets, a:idx)
         call pets#main#log(printf('failed to set pet opt: %d, %s, %s',
@@ -134,14 +126,6 @@ endfunction
 function! s:set_ball_subopt(opt1, opt2, val) abort
     let s:pets_status.ball[a:opt1][a:opt2] = a:val
 endfunction
-
-" function! pets#main#rm_pets_opt(idx, opt)
-"     if !has_key(s:pets_status.pets, a:idx)
-"         call pets#main#log(printf('%d is already removed (opt:%s)', a:idx, a:opt))
-"         return -1
-"     endif
-"     call remove(s:pets_status.pets[a:idx], a:opt)
-" endfunction
 
 function! s:rm_pets_subopt(idx, opt1, opt2)
     if !has_key(s:pets_status.pets, a:idx)
