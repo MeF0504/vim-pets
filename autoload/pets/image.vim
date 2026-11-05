@@ -81,4 +81,7 @@ endfunction
 function! pets#image#clear_iminfo() abort
     let s:iminfo = {}
     python3 close_img_dir()
+    if has('nvim')
+        call v:lua.require'vim-pets'.clear()
+    endif
 endfunction
